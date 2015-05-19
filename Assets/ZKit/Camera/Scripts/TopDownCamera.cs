@@ -8,6 +8,7 @@ namespace ZKit
     {
         private float m_zoom = 10f;
         private Transform m_transform;
+
         //public Transform transform { get { return m_transform; } }
 
         protected virtual void Awake()
@@ -26,7 +27,6 @@ namespace ZKit
             {
                 h = CrossPlatformInputManager.GetAxis("Mouse X");
                 v = CrossPlatformInputManager.GetAxis("Mouse Y");
-
             }
 
             if (CrossPlatformInputManager.GetButton("Fire1") || z != 0f)

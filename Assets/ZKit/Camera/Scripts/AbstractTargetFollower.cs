@@ -15,8 +15,16 @@ namespace ZKit
         [SerializeField] private UpdateType m_UpdateType;         // stores the selected update type
         [SerializeField] protected Transform m_Target;            // The target object to follow
 
+        protected Transform m_Cam; // the transform of the camera
+
         public Transform Target { get { return m_Target; } }
         public virtual void SetTarget(Transform newTransform) { m_Target = newTransform; }
+
+        protected virtual void Awake()
+        {
+            // find the camera in the object hierarchy
+            m_Cam = GetComponentInChildren<Camera>().transform;
+        }
 
         // Use this for initialization
         void Start()
