@@ -12,6 +12,7 @@ public class ScannerWindow : EditorWindow
 
     private static bool _testMode = false;
     private static Vector3 _testAsHero = new Vector3();
+    public Transform _testHero;
 //    private static Vector3 _testJpsHero = new Vector3();
     private static int _testHeroCurIndex = 0;
     private static bool _testHeroMoveMode = false;
@@ -162,11 +163,6 @@ public class ScannerWindow : EditorWindow
                     _asPath = PathFinder.AStar.Instance.Find(cells.GetNearIndex(_testAsHero), _testClickedIndex);
                     //_jpsPath = PathFinder.JPS.Instance.Find(cells.GetNearIndex(_testJpsHero), _testClickedIndex);
                     _jpsPath = PathFinder.JPS.Instance.Find(cells.GetNearIndex(_testAsHero), _testClickedIndex);
-
-                    //string kkk = "";
-                    //foreach(Point p in _jpsPath)
-                    //    kkk += p.ToString() + " | ";
-                    //Debug.Log(kkk);
 
                     _testHeroCurIndex = 1;
                     _testHeroMoveTime = 0f;
@@ -416,6 +412,8 @@ public class ScannerWindow : EditorWindow
         #endregion
 
         EditorGUILayout.Separator();
+        EditorGUILayout.LabelField("00000000000000");
+        EditorGUILayout.ObjectField("Target", _testHero, typeof(Transform));
 
         if (!cells.IsEmpty)
         {
