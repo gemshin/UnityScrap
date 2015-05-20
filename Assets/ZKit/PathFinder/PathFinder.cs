@@ -2,72 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace PathFinder
+namespace ZKit.PathFinder
 {
-    public class Node
-    {
-        public Node(int id, int x, int y, float height) { _id = id; _x = x; _y = y; _height = height; }
-        public Node(int id, int x, int y, float height, bool canGo) { _id = id; _x = x; _y = y; _height = height; _canGo = canGo; }
-
-        protected int _id;
-        public int ID { get { return _id; } }
-
-        protected int _x, _y;
-        public Point Index { get { return new Point(_x, _y); } }
-        public int X { get { return _x; } }
-        public int Y { get { return _y; } }
-
-        protected float _height;
-        public float Height { get { return _height; } }
-
-        protected bool _canGo = false;
-        public bool CanGo { get { return _canGo; } set { _canGo = value; } }
-
-        public float H = 0f;
-        public float G = 0f;
-        public float F = 0f;
-
-        public Node Parent = null;
-
-        public void Initialize()
-        {
-            F = 0f;
-            H = 0f;
-            G = 0f;
-            Parent = null;
-//            _canGo = false;
-        }
-    }
-
-    public static class Util
-    {
-        private const int _cellStraight = 10;
-        private const int _cellDiagonal = 14;
-
-        public static double BeelineDistance(Node a, Node b)
-        {
-            return System.Math.Sqrt(System.Math.Pow(a.X - b.X, 2) + System.Math.Pow(a.Y - b.Y, 2)) * _cellStraight;
-        }
-        public static int PerpendicularDistance(Node a, Node b)
-        {
-            return PrependicularCount(a, b) * _cellStraight;
-        }
-        public static int PrependicularCount(Node a, Node b)
-        {
-            return (System.Math.Abs(a.X - b.X) + System.Math.Abs(a.Y - b.Y));
-        }
-        //public static float GetMoveCost(Node from, Node to)
-        //{
-        //    return (from.X != to.X && from.Y != to.Y) ? _cellDiagonal : _cellStraight;
-        //}
-        public static float GetMoveCost(Node from, Node to)
-        {
-            int x = System.Math.Abs(from.X - to.X);
-            int y = System.Math.Abs(from.Y - to.Y);
-            return (System.Math.Min(x, y) * _cellDiagonal) + ((System.Math.Max(x, y) - System.Math.Min(x, y)) * _cellStraight);
-        }
-    }
-
     public class JPS : NonPubSingleton<JPS>
     {
         public enum Direction

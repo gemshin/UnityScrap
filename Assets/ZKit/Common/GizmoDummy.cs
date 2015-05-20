@@ -1,30 +1,33 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class GizmoDummy : MonoBehaviour
+namespace ZKit
 {
-    #region Gizmo Root
-    public const string GizmoRootName = "Gizmo Dummy";
-    private static GameObject _gizmoRoot = null;
-    public static GameObject GizmoRoot
+    public class GizmoDummy : MonoBehaviour
     {
-        get
+        #region Gizmo Root
+        public const string GizmoRootName = "Gizmo Dummy";
+        private static GameObject _gizmoRoot = null;
+        public static GameObject GizmoRoot
         {
-            Init();
-            return _gizmoRoot;
+            get
+            {
+                Init();
+                return _gizmoRoot;
+            }
         }
-    }
-    public static void Init()
-    {
-        if (_gizmoRoot == null)
+        public static void Init()
         {
-            GameObject root = GameObject.Find(GizmoRootName);
-            if (root != null) GameObject.DestroyImmediate(root);
-            _gizmoRoot = new GameObject(GizmoRootName);
-            _gizmoRoot.AddComponent<GizmoDummy>();
-            //_gizmoRoot.hideFlags = HideFlags.HideAndDontSave;
-            _gizmoRoot.hideFlags = HideFlags.DontSave;
+            if (_gizmoRoot == null)
+            {
+                GameObject root = GameObject.Find(GizmoRootName);
+                if (root != null) GameObject.DestroyImmediate(root);
+                _gizmoRoot = new GameObject(GizmoRootName);
+                _gizmoRoot.AddComponent<GizmoDummy>();
+                //_gizmoRoot.hideFlags = HideFlags.HideAndDontSave;
+                _gizmoRoot.hideFlags = HideFlags.DontSave;
+            }
         }
+        #endregion
     }
-    #endregion
 }

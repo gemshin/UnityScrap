@@ -3,38 +3,45 @@ using UnityEditor;
 using System.Collections;
 using System.Collections.Generic;
 
+using ZKit;
+using ZKit.PathFinder;
+
 public class ScannerWindow : EditorWindow
 {
+
+    #region PathFinder Debug Variable
     private static bool _showGrid = true;
     private static bool _showIndex = false;
     private static float _viewDistance = 20f;
-    private static float _gridGap = 0.1f;
+    private static float _gridGap = 0.1f; 
 
     private static bool _testMode = false;
-    private static Vector3 _testAsHero = new Vector3();
+    private Point _testClickedIndex = new Point();
+
     public Transform _testHero;
+    private static Vector3 _testAsHero = new Vector3();
 //    private static Vector3 _testJpsHero = new Vector3();
     private static int _testHeroCurIndex = 0;
     private static bool _testHeroMoveMode = false;
     private float _testHeroMoveTime = 0f;
     private float _testHeroSpeed = 1f;
-    private Point _testClickedIndex = new Point();
 
-    #region A*
+    private List<Point> _asPath = null;
+    private List<Point> _jpsPath = null;
+    #endregion
+
+    #region A* TEST Variable
     private bool _testShowAsPath = false;
     private bool _testShowAClosedPoint = false;
     private bool _testShowAValue = false;
     #endregion
 
-    #region JPS
+    #region JPS TEST Variable
     private bool _testShowJumpPointPath = false;
     private bool _testShowJumpPoint = false;
     private bool _testShowJClosedPoint = false;
     private bool _testShowJValue = false;
     #endregion
-
-    List<Point> _asPath = null;
-    List<Point> _jpsPath = null;
 
     [MenuItem("TEST/Scanner")]
     static void Init()
@@ -78,7 +85,7 @@ public class ScannerWindow : EditorWindow
             {
                 for (int x = 0; x < cells.CountX; ++x)
                 {
-                    if (PathFinder.AStar.Instance._map[y, x].F != 0)
+                    if (AStar.Instance._map[y, x].F != 0)
                     {
                         Handles.color = Color.cyan;
                         Handles.DotCap(0, cells.GetPosVec3(cells[y, x].Index, cells[y, x].Height), Quaternion.identity, 0.4f);
@@ -90,14 +97,14 @@ public class ScannerWindow : EditorWindow
         #region Draw JPS ClosedPoint
         if (_testMode && _testShowJClosedPoint)
         {
-            if (PathFinder.JPS.Instance._closedList != null)
+            if (JPS.Instance._closedList != null)
             {
-                for (int i = 0; i < PathFinder.JPS.Instance._closedList.Length; ++i)
+                for (int i = 0; i < JPS.Instance._closedList.Length; ++i)
                 {
-                    if (PathFinder.JPS.Instance._closedList[i] != null)
+                    if (JPS.Instance._closedList[i] != null)
                     {
                         Handles.color = Color.magenta;
-                        Handles.DotCap(0, cells.GetPosVec3(PathFinder.JPS.Instance._closedList[i].Index, PathFinder.JPS.Instance._closedList[i].Height), Quaternion.identity, 0.3f);
+                        Handles.DotCap(0, cells.GetPosVec3(JPS.Instance._closedList[i].Index, JPS.Instance._closedList[i].Height), Quaternion.identity, 0.3f);
                     }
                 }
             }
@@ -107,7 +114,7 @@ public class ScannerWindow : EditorWindow
         #region Draw JumpPoint
         if (_testMode && _testShowJumpPoint)
         {
-            foreach (PathFinder.Node n in PathFinder.JPS.Instance.TEST)
+            foreach (Node n in JPS.Instance.TEST)
             {
                 Handles.color = Color.blue;
                 Handles.DotCap(0, cells.GetPosVec3(n.Index, n.Height), Quaternion.identity, 0.3f);
@@ -134,11 +141,11 @@ public class ScannerWindow : EditorWindow
                             if( _showIndex )
                                 label += string.Format("{0}:{1}", (cells.CountX * y + x), cells[y, x].Index.ToString());
 
-                            if (_testShowAValue && PathFinder.AStar.Instance._map[y, x].F != 0)
-                                label += string.Format("\nF={0}-G={1}-H={2}", PathFinder.AStar.Instance._map[y, x].F, PathFinder.AStar.Instance._map[y, x].G, PathFinder.AStar.Instance._map[y, x].H);
+                            if (_testShowAValue && AStar.Instance._map[y, x].F != 0)
+                                label += string.Format("\nF={0}-G={1}-H={2}", AStar.Instance._map[y, x].F, AStar.Instance._map[y, x].G, AStar.Instance._map[y, x].H);
 
-                            if (_testShowJValue && PathFinder.JPS.Instance._map[y, x].F != 0)
-                                label += string.Format("\nF={0}-G={1}-H={2}", PathFinder.JPS.Instance._map[y, x].F, PathFinder.JPS.Instance._map[y, x].G, PathFinder.JPS.Instance._map[y, x].H);
+                            if (_testShowJValue && JPS.Instance._map[y, x].F != 0)
+                                label += string.Format("\nF={0}-G={1}-H={2}", JPS.Instance._map[y, x].F, JPS.Instance._map[y, x].G, JPS.Instance._map[y, x].H);
 
                             Handles.Label(cells.GetPosVec3(cells[y, x].Index, cells[y, x].Height), label, style);
                         }
@@ -160,9 +167,9 @@ public class ScannerWindow : EditorWindow
                 if (Physics.Raycast(sceneView.camera.ScreenPointToRay(MousePos), out hit, 10000, (1 << 8)))
                 {
                     _testClickedIndex = cells.GetNearIndex(hit.point);
-                    _asPath = PathFinder.AStar.Instance.Find(cells.GetNearIndex(_testAsHero), _testClickedIndex);
+                    _asPath = AStar.Instance.Find(cells.GetNearIndex(_testAsHero), _testClickedIndex);
                     //_jpsPath = PathFinder.JPS.Instance.Find(cells.GetNearIndex(_testJpsHero), _testClickedIndex);
-                    _jpsPath = PathFinder.JPS.Instance.Find(cells.GetNearIndex(_testAsHero), _testClickedIndex);
+                    _jpsPath = JPS.Instance.Find(cells.GetNearIndex(_testAsHero), _testClickedIndex);
 
                     _testHeroCurIndex = 1;
                     _testHeroMoveTime = 0f;
@@ -201,7 +208,7 @@ public class ScannerWindow : EditorWindow
 
             #region Draw Destination Point
             Handles.color = Color.green;
-            Vector3 clickedPoint = cells.GetPosVec3(_testClickedIndex, cells[_testClickedIndex.y, _testClickedIndex.x].Y + _gridGap);
+            Vector3 clickedPoint = cells.GetPosVec3(_testClickedIndex, cells[_testClickedIndex.y, _testClickedIndex.x].Height + _gridGap);
             Handles.DotCap(0, clickedPoint, Quaternion.identity, 0.1f * HandleUtility.GetHandleSize(clickedPoint));
             #endregion
         }
@@ -229,6 +236,7 @@ public class ScannerWindow : EditorWindow
                 Vector3 t = cells.GetPosVec3(_asPath[_testHeroCurIndex], cells[_asPath[_testHeroCurIndex].y, _asPath[_testHeroCurIndex].x].Height);
 
                 _testAsHero = Vector3.Lerp(f, t, _testHeroMoveTime);
+                _testHero.position = Vector3.Lerp(f, t, _testHeroMoveTime);
             }
 
             //if (_jpsPath != null && _testHeroCurIndex < _jpsPath.Count)
@@ -405,15 +413,13 @@ public class ScannerWindow : EditorWindow
                 }
             }
 
-            PathFinder.AStar.Instance.SetMap();
-            PathFinder.JPS.Instance.SetMap();
+            AStar.Instance.SetMap();
+            JPS.Instance.SetMap();
             _asPath = null;
         }
         #endregion
 
         EditorGUILayout.Separator();
-        EditorGUILayout.LabelField("00000000000000");
-        EditorGUILayout.ObjectField("Target", _testHero, typeof(Transform));
 
         if (!cells.IsEmpty)
         {
@@ -435,6 +441,7 @@ public class ScannerWindow : EditorWindow
             EditorGUILayout.LabelField("2nd Step - Test & Review");
             EditorGUILayout.EndVertical();
             bool pastTestMode = _testMode;
+            _testHero = (Transform)EditorGUILayout.ObjectField("Target", _testHero, typeof(Transform), true);
             _testMode = EditorGUILayout.Toggle("Test Mode", _testMode);
             if (_testMode != pastTestMode && _testMode)
             {
@@ -442,6 +449,8 @@ public class ScannerWindow : EditorWindow
                 {
                     if (element.Type == CellType.Normal)
                     {
+                        continue;
+                        _testHero.position = cells.GetPosVec3(element.Index, element.Y);
                         _testAsHero = cells.GetPosVec3(element.Index, element.Y);
                         //_testJpsHero = cells.GetPosVec3(element.Index, element.Y);
                         break;

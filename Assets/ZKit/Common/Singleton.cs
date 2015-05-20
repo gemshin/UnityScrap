@@ -3,36 +3,39 @@ using System.IO;
 using System.Reflection;
 using UnityEngine;
 
-public class NonPubSingleton<T> where T : class
+namespace ZKit
 {
-    private static T _instance;
-    private static object _lock = new object();
-
-    public static T Instance
+    public class NonPubSingleton<T> where T : class
     {
-        get
+        private static T _instance;
+        private static object _lock = new object();
+
+        public static T Instance
         {
-            if (_instance == null)
+            get
             {
-                lock (_lock)
+                if (_instance == null)
                 {
-                    ConstructorInfo constructor = null;
-
-                    try
+                    lock (_lock)
                     {
-                        constructor = typeof(T).GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new Type[0], null);
-                    }
-                    catch (Exception e)
-                    {
-                        throw new Exception("Get Constructor Failed", e);
-                    }
+                        ConstructorInfo constructor = null;
 
-                    if (constructor == null || constructor.IsAssembly)
-                        throw new Exception(string.Format("constructor is missing {0}", typeof(T).Name));
-                    _instance = (T)constructor.Invoke(null);
+                        try
+                        {
+                            constructor = typeof(T).GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, new Type[0], null);
+                        }
+                        catch (Exception e)
+                        {
+                            throw new Exception("Get Constructor Failed", e);
+                        }
+
+                        if (constructor == null || constructor.IsAssembly)
+                            throw new Exception(string.Format("constructor is missing {0}", typeof(T).Name));
+                        _instance = (T)constructor.Invoke(null);
+                    }
                 }
+                return _instance;
             }
-            return _instance;
         }
     }
 }

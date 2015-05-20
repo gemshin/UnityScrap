@@ -2,6 +2,8 @@
 using UnityEditor;
 using System.Collections;
 
+using ZKit;
+
 public class BoundCheckWindow : EditorWindow
 {
     private static bool _testMode = false;
