@@ -38,13 +38,19 @@ namespace ZKit
 
         private void FixedUpdate()
         {
+            //if (CrossPlatformInputManager.GetButton("Fire1"))
+            //{
+            //    RaycastHit hit;
+            //    if (Physics.Raycast(m_Cam.ScreenPointToRay(Input.mousePosition), out hit, 10000, (1 << 8)))
+            //    {
+            //        m_Character.Move((hit.point - m_Character.transform.position), false, false);
+            //    }
+            //}
+
             if (CrossPlatformInputManager.GetButton("Fire1"))
             {
-                RaycastHit hit;
-                if (Physics.Raycast(m_Cam.ScreenPointToRay(Input.mousePosition), out hit, 10000, (1 << 8)))
-                {
-                    m_Character.Move((hit.point - m_Character.transform.position), false, false);
-                }
+                CharacterController cc = gameObject.GetComponent<CharacterController>();
+                cc.Move(Vector3.back * 0.001f);
             }
         }
     }
