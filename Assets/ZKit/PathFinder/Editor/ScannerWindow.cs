@@ -18,7 +18,6 @@ public class ScannerWindow : EditorWindow
     private static bool _testMode = false;
     private Point _testClickedIndex = new Point();
 
-    public Transform _testHero;
     private static Vector3 _testAsHero = new Vector3();
 //    private static Vector3 _testJpsHero = new Vector3();
     private static int _testHeroCurIndex = 0;
@@ -41,6 +40,15 @@ public class ScannerWindow : EditorWindow
     private bool _testShowJumpPoint = false;
     private bool _testShowJClosedPoint = false;
     private bool _testShowJValue = false;
+    #endregion
+
+    #region XML CONST String
+    private const string PATH_CELLSETTINGS = "Assets/Scenes/InfoData/cellSettings.xml";
+    private const string ROOTNAME = "CellSettings";
+    private const string SCENE = "Scene";
+    private const string NAME = "Name";
+    private const string CELLSIZE = "CellSize";
+    private const string HEIGHTLIMIT = "HeightLimit";
     #endregion
 
     [MenuItem("TEST/Scanner")]
@@ -236,7 +244,6 @@ public class ScannerWindow : EditorWindow
                 Vector3 t = cells.GetPosVec3(_asPath[_testHeroCurIndex], cells[_asPath[_testHeroCurIndex].y, _asPath[_testHeroCurIndex].x].Height);
 
                 _testAsHero = Vector3.Lerp(f, t, _testHeroMoveTime);
-                _testHero.position = Vector3.Lerp(f, t, _testHeroMoveTime);
             }
 
             //if (_jpsPath != null && _testHeroCurIndex < _jpsPath.Count)
@@ -441,7 +448,6 @@ public class ScannerWindow : EditorWindow
             EditorGUILayout.LabelField("2nd Step - Test & Review");
             EditorGUILayout.EndVertical();
             bool pastTestMode = _testMode;
-            _testHero = (Transform)EditorGUILayout.ObjectField("Target", _testHero, typeof(Transform), true);
             _testMode = EditorGUILayout.Toggle("Test Mode", _testMode);
             if (_testMode != pastTestMode && _testMode)
             {
@@ -450,7 +456,6 @@ public class ScannerWindow : EditorWindow
                     if (element.Type == CellType.Normal)
                     {
                         continue;
-                        _testHero.position = cells.GetPosVec3(element.Index, element.Y);
                         _testAsHero = cells.GetPosVec3(element.Index, element.Y);
                         //_testJpsHero = cells.GetPosVec3(element.Index, element.Y);
                         break;
@@ -479,6 +484,53 @@ public class ScannerWindow : EditorWindow
                 }
             }
             #endregion
+
+            EditorGUILayout.Separator();
+
+            EditorGUILayout.BeginVertical("box");
+            EditorGUILayout.LabelField("3rd Step - Save");
+            EditorGUILayout.EndVertical();
+            EditorGUILayout.LabelField("- File Path : " + PATH_CELLSETTINGS);
+            EditorGUILayout.EndVertical();
+
+            if (GUILayout.Button("Save"))
+            {
+                System.Xml.XmlDocument doc;
+                XmlHandler.LoadXML(PATH_CELLSETTINGS, out doc);
+
+                System.Xml.XmlNode root = doc.DocumentElement;
+                if (root == null)
+                {
+                    root = doc.CreateElement(ROOTNAME);
+                    doc.AppendChild(root);
+                }
+
+                string scenename = System.IO.Path.GetFileName(EditorApplication.currentScene);
+                System.Xml.XmlNode scene = root.SelectSingleNode(string.Format("descendant::{0}[{1}='{2}']", SCENE, NAME, scenename));
+                if (scene == null)
+                {
+                    scene = doc.CreateElement(SCENE);
+                    root.AppendChild(scene);
+                    System.Xml.XmlNode name = doc.CreateElement(NAME);
+                    name.InnerText = scenename;
+                    scene.AppendChild(name);
+                    System.Xml.XmlNode cellsize = doc.CreateElement(CELLSIZE);
+                    cellsize.InnerText = cells.CellSize.ToString();
+                    scene.AppendChild(cellsize);
+                    System.Xml.XmlNode heightLimit = doc.CreateElement(HEIGHTLIMIT);
+                    heightLimit.InnerText = cells.HeightLimit.ToString();
+                    scene.AppendChild(heightLimit);
+                }
+                else
+                {
+                    System.Xml.XmlNode size = scene.SelectSingleNode("descendant::" + CELLSIZE);
+                    size.InnerText = cells.CellSize.ToString();
+                    System.Xml.XmlNode limit = scene.SelectSingleNode("descendant::" + HEIGHTLIMIT);
+                    limit.InnerText = cells.HeightLimit.ToString();
+                }
+
+                XmlHandler.SaveXML(PATH_CELLSETTINGS, doc);
+            }
         }
     }
 

@@ -66,14 +66,8 @@ namespace ZKit.PathFinder
                 _jumpPoint.Add(node);
             TEST.Add(node);
         }
-        private void JumpPointRemove(Node node)
-        {
-            _jumpPoint.Remove(node);
-        }
-        private void ClosedListAdd(Node node)
-        {
-            _closedList[node.ID] = node;
-        }
+        private void JumpPointRemove(Node node) { _jumpPoint.Remove(node); }
+        private void ClosedListAdd(Node node) { _closedList[node.ID] = node; }
         public List<Node> TEST = new List<Node>();
         public Node[] _closedList = null;
 
@@ -531,14 +525,14 @@ namespace ZKit.PathFinder
             //current.H = Util.PrependicularCount(current, _end);
         }
 
-        public void GetF(Node current, Node from)
+        private void GetF(Node current, Node from)
         {
             GetH(current);
             GetG(current, from);
             current.F = current.H + current.G;
         }
 
-        public void ScanAround(Node current)
+        private void ScanAround(Node current)
         {
             for (int y = -1; y < 2; ++y)
             {
