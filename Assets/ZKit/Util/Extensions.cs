@@ -18,6 +18,11 @@ public static class Extensions
         v.z = float.Parse(tmp[2]);
     }
 
+    public static string ToStringWithoutBracket(this Vector2 v)
+    {
+        return v.ToString("F2").Replace("(", "").Replace(")", "");
+    }
+
     public static string ToStringWithoutBracket(this Vector3 v)
     {
         return v.ToString("F2").Replace("(", "").Replace(")", "");
