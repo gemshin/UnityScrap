@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
+using ZKit.PathFinder;
 
 namespace ZKit
 {
@@ -15,10 +17,13 @@ namespace ZKit
 
         Transform _target;
 
-        //Vector3 _moveTarget;
+        Vector3 _moveTarget;
         Vector3 _dirTarget;
 
         bool _aniFlgMove = false;
+
+        List<Vector3> _path;
+        int _pathIndex = 0;
 
         void Awake()
         {
@@ -31,9 +36,26 @@ namespace ZKit
             _dirTarget = Vector3.forward;
         }
 
+        void OnDrawGizmos()
+        {
+            if (_path != null && _path.Count > 1)
+            {
+                Gizmos.DrawLine(transform.position, _path[0]);
+                for (int i = 0; i < _path.Count - 1; ++i)
+                {
+                    Gizmos.DrawLine(_path[i], _path[i + 1]);
+                }
+            }
+        }
+
         void FixedUpdate()
         {
-            Vector3 m = _target.position - transform.position; m.y = 0f;
+            _path = JPS.Instance.Find(transform.position, _target.position);
+            if (_path.Count > 1)
+            {
+                _moveTarget = _path[_pathIndex = 0];
+            }
+            Vector3 m = _moveTarget - transform.position; m.y = 0f;
             if (m.magnitude > 2.0f)
             {
                 m.Normalize();
@@ -42,7 +64,14 @@ namespace ZKit
                 _aniFlgMove = true;
             }
             else
-                _aniFlgMove = false;
+            {
+                if (_path != null && _pathIndex + 1 < _path.Count)
+                {
+                    _moveTarget = _path[++_pathIndex];
+                }
+                else
+                    _aniFlgMove = false;
+            }
 
             Animating();
         }

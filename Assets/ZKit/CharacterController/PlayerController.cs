@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
+using ZKit.PathFinder;
 
 namespace ZKit
 {
@@ -11,12 +13,15 @@ namespace ZKit
         Rigidbody _rig;
         CharacterController _cc;
         int _pathMask;
-        float _camRayLength = 100f;
+        float _camRayLength = 10000f;
 
         Vector3 _moveTarget;
         Vector3 _dirTarget;
 
         bool _aniFlgMove = false;
+
+        List<Vector3> _path;
+        int _pathIndex = 0;
 
         void Awake()
         {
@@ -26,9 +31,18 @@ namespace ZKit
             _cc = GetComponent<CharacterController>();
             _moveTarget = transform.position;
             _dirTarget = Vector3.forward;
+        }
 
-            int x = PathFinder.JPS.Instance.GetCountX;
-            int xxx = 0;
+        void OnDrawGizmos()
+        {
+            if ( _path != null && _path.Count > 1)
+            {
+                Gizmos.DrawLine(transform.position, _path[0]);
+                for (int i = 0; i < _path.Count - 1; ++i)
+                {
+                    Gizmos.DrawLine(_path[i], _path[i + 1]);
+                }
+            }
         }
 
         void FixedUpdate()
@@ -40,7 +54,12 @@ namespace ZKit
 
                 if (Physics.Raycast(camRay, out pathHit, _camRayLength, _pathMask))
                 {
-                    MoveTo(pathHit.point);
+                    _path = JPS.Instance.Find(transform.position, pathHit.point);
+                    if (_path.Count > 1)
+                    {
+                        //MoveTo(_path[0]);
+                        _moveTarget = _path[_pathIndex = 0];
+                    }
                 }
             }
 
@@ -53,7 +72,14 @@ namespace ZKit
                 _aniFlgMove = true;
             }
             else
-                _aniFlgMove = false;
+            {
+                if (_path != null && _pathIndex + 1 < _path.Count)
+                {
+                    _moveTarget = _path[++_pathIndex];
+                }
+                else
+                    _aniFlgMove = false;
+            }
 
             Animating();
         }

@@ -6,6 +6,7 @@ using System.Xml;
 
 using ZKit;
 using ZKit.PathFinder;
+using System.IO;
 
 public class ScannerWindow : EditorWindow
 {
@@ -500,64 +501,96 @@ public class ScannerWindow : EditorWindow
             EditorGUILayout.BeginVertical("box");
             EditorGUILayout.LabelField("3rd Step - Save");
             EditorGUILayout.EndVertical();
-            EditorGUILayout.LabelField("- File Path : " + PATH_CELLSETTINGS);
+            EditorGUILayout.LabelField("- File Path : " + PATH_CELLSETTINGS );
             EditorGUILayout.EndVertical();
 
             if (GUILayout.Button("Save"))
             {
-                XmlDocument doc = new System.Xml.XmlDocument();
-                string scenename = System.IO.Path.GetFileName(EditorApplication.currentScene);
-//                XmlHandler.LoadXML(PATH_CELLSETTINGS + scenename, out doc);
-
-                XmlNode root = doc.CreateElement(ROOTNAME);
-                doc.AppendChild(root);
-
-                XmlNode cellInfo = doc.CreateElement(CELLINFO);
-                root.AppendChild(cellInfo);
-
-                XmlNode name = doc.CreateElement(SCENENAME);
-                name.InnerText = scenename;
-                cellInfo.AppendChild(name);
-                XmlNode cellsize = doc.CreateElement(CELLSIZE);
-                cellsize.InnerText = cells.CellSize.ToString();
-                cellInfo.AppendChild(cellsize);
-                XmlNode heightLimit = doc.CreateElement(HEIGHTLIMIT);
-                heightLimit.InnerText = cells.HeightLimit.ToString();
-                cellInfo.AppendChild(heightLimit);
-                XmlNode startPos = doc.CreateElement(STARTPOS);
-                startPos.InnerText = cells.StartingPoint.ToStringWithoutBracket();
-                cellInfo.AppendChild(startPos);
-                XmlNode width = doc.CreateElement(CELLWIDTH);
-                width.InnerText = cells.CountX.ToString();
-                cellInfo.AppendChild(width);
-                XmlNode height = doc.CreateElement(CELLHEIGHT);
-                height.InnerText = cells.CountY.ToString();
-                cellInfo.AppendChild(height);
-
-                XmlNode cellData = doc.CreateElement(CELLS);
-                root.AppendChild(cellData);
-
-                foreach(CellData cell in cells)
-                {
-                    XmlNode c = doc.CreateElement(CELL);
-                    cellData.AppendChild(c);
-                    XmlAttribute x = doc.CreateAttribute(X);
-                    XmlAttribute y = doc.CreateAttribute(Y);
-                    x.Value = cell.X.ToString();
-                    y.Value = cell.Y.ToString();
-                    c.Attributes.Append(x);
-                    c.Attributes.Append(y);
-                    XmlAttribute cellHeight = doc.CreateAttribute(HEIGHT);
-                    cellHeight.Value = cell.Height.ToString("F2");
-                    c.Attributes.Append(cellHeight);
-                    XmlAttribute cellType = doc.CreateAttribute(CELLTYPE);
-                    cellType.Value = cell.Type.GetHashCode().ToString();
-                    c.Attributes.Append(cellType);
-                }
-
-                XmlHandler.SaveXML(PATH_CELLSETTINGS + scenename, doc);
+                SaveToXmlFile();
+                SaveToFile();
             }
         }
+    }
+
+    private bool SaveToFile()
+    {
+        var cells = DataCon.Instance.CellDatas;
+        string scenename = Path.GetFileName(EditorApplication.currentScene);
+        FileStream fs = new FileStream(PATH_CELLSETTINGS + Path.GetFileNameWithoutExtension(scenename) + ".cel", FileMode.Create, FileAccess.Write );
+        BinaryWriter bw = new BinaryWriter(fs);
+        bw.Write(scenename);
+        bw.Write(cells.CellSize);
+        bw.Write(cells.HeightLimit);
+        bw.Write(cells.StartingPoint.x);
+        bw.Write(cells.StartingPoint.y);
+        bw.Write(cells.CountX);
+        bw.Write(cells.CountY);
+        foreach (CellData cell in cells)
+        {
+            bw.Write(cell.Height);
+            bw.Write(cell.Type.GetHashCode());
+        }
+        bw.Close();
+        fs.Close();
+        return false;
+    }
+
+    private bool SaveToXmlFile()
+    {
+        var cells = DataCon.Instance.CellDatas;
+
+        XmlDocument doc = new System.Xml.XmlDocument();
+        string scenename = Path.GetFileName(EditorApplication.currentScene);
+
+        XmlNode root = doc.CreateElement(ROOTNAME);
+        doc.AppendChild(root);
+
+        XmlNode cellInfo = doc.CreateElement(CELLINFO);
+        root.AppendChild(cellInfo);
+
+        XmlNode name = doc.CreateElement(SCENENAME);
+        name.InnerText = scenename;
+        cellInfo.AppendChild(name);
+        XmlNode cellsize = doc.CreateElement(CELLSIZE);
+        cellsize.InnerText = cells.CellSize.ToString();
+        cellInfo.AppendChild(cellsize);
+        XmlNode heightLimit = doc.CreateElement(HEIGHTLIMIT);
+        heightLimit.InnerText = cells.HeightLimit.ToString();
+        cellInfo.AppendChild(heightLimit);
+        XmlNode startPos = doc.CreateElement(STARTPOS);
+        startPos.InnerText = cells.StartingPoint.ToStringWithoutBracket();
+        cellInfo.AppendChild(startPos);
+        XmlNode width = doc.CreateElement(CELLWIDTH);
+        width.InnerText = cells.CountX.ToString();
+        cellInfo.AppendChild(width);
+        XmlNode height = doc.CreateElement(CELLHEIGHT);
+        height.InnerText = cells.CountY.ToString();
+        cellInfo.AppendChild(height);
+
+        XmlNode cellData = doc.CreateElement(CELLS);
+        root.AppendChild(cellData);
+
+        foreach (CellData cell in cells)
+        {
+            XmlNode c = doc.CreateElement(CELL);
+            cellData.AppendChild(c);
+            XmlAttribute x = doc.CreateAttribute(X);
+            XmlAttribute y = doc.CreateAttribute(Y);
+            x.Value = cell.X.ToString();
+            y.Value = cell.Y.ToString();
+            c.Attributes.Append(x);
+            c.Attributes.Append(y);
+            XmlAttribute cellHeight = doc.CreateAttribute(HEIGHT);
+            cellHeight.Value = cell.Height.ToString("F2");
+            c.Attributes.Append(cellHeight);
+            XmlAttribute cellType = doc.CreateAttribute(CELLTYPE);
+            cellType.Value = cell.Type.GetHashCode().ToString();
+            c.Attributes.Append(cellType);
+        }
+
+        if (XmlHandler.SaveXML(PATH_CELLSETTINGS + scenename, doc) == XmlHandler.RESULT.SUCCESS)
+            return true;
+        return false;
     }
 
     private Rect ScanMapSize()

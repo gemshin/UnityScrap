@@ -43,6 +43,7 @@ public class PackCellData : IEnumerable//, IEnumerator
     }
     public void Create(int x, int y)
     {
+        Clear();
         _cellDatas = new CellData[y, x];
         for (int i = 0; i < y; ++i)
         {

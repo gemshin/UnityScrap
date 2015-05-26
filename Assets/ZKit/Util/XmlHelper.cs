@@ -21,7 +21,7 @@ namespace ZKit
         /// <summary>
         /// Xml파일을 읽어온다.
         /// </summary>
-        /// <param name="filePath">읽어오길 원하는 파일 경로+이름</param>
+        /// <param name="filePath">읽을 파일 경로+이름</param>
         /// <param name="xmlDocument">[out] 읽어온 XmlDocument</param>
         /// <returns>읽은 결과를 반환한다.</returns>
         public static RESULT LoadXML(string filePath, out XmlDocument xmlDocument)

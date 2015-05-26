@@ -128,6 +128,36 @@ namespace ZKit.PathFinder
             //return System.Math.Abs(current.X * _end.Y - _end.X * current.Y);
         }
 
+        public List<Vector3> Find(Vector3 start, Vector3 end)
+        {
+            if (!Prepare()) return null;
+
+            Point sp = DataCon.Instance.CellDatas.GetNearIndex(start);
+            Point ep = DataCon.Instance.CellDatas.GetNearIndex(end);
+
+            _start = _map[sp.y, sp.x];
+            _end = _map[ep.y, ep.x];
+
+            JumpPointAdd(_map[_start.Y, _start.X], null);
+
+            int i = 0;
+            for (i = 1; _jumpPoint.Count != 0; ++i)
+            {
+                Node tmp = _jumpPoint[0];
+                if (Scan(tmp)) break;
+                ClosedListAdd(tmp);
+                JumpPointRemove(tmp);
+            }
+
+            List<Vector3> result = new List<Vector3>();
+            for (Node j = _end; j.Parent != null; j = j.Parent)
+            {
+                result.Insert(0, DataCon.Instance.CellDatas.GetPosVec3(j.Index, j.Height));
+            }
+            //result.Insert(0, DataCon.Instance.CellDatas.GetPosVec3(_start.Index, _start.Height));
+            return result;
+        }
+
         public List<Point> Find(Point start, Point end)
         {
             if (!Prepare()) return null;
