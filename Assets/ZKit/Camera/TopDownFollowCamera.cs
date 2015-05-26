@@ -22,5 +22,10 @@ namespace ZKit
 
             transform.position = Vector3.Lerp( transform.position + (Vector3.up * m_zoom), Target.position, deltaTime*10f);
         }
+
+        void FixedUpdate()
+        {
+            base.FixedUpdate();
+        }
     }
 }

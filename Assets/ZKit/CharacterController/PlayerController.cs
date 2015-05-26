@@ -37,6 +37,7 @@ namespace ZKit
         {
             if ( _path != null && _path.Count > 1)
             {
+                Gizmos.color = Color.red;
                 Gizmos.DrawLine(transform.position, _path[0]);
                 for (int i = 0; i < _path.Count - 1; ++i)
                 {

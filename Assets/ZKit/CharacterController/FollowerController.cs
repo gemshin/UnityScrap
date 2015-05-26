@@ -48,13 +48,22 @@ namespace ZKit
             }
         }
 
+        float _gapPFTime = 1f;
+        float _accumPFTime = 1f;
         void FixedUpdate()
         {
-            _path = JPS.Instance.Find(transform.position, _target.position);
-            if (_path.Count > 1)
+            if (_gapPFTime <= _accumPFTime)
             {
-                _moveTarget = _path[_pathIndex = 0];
+                _accumPFTime = 0f;
+                _path = JPS.Instance.Find(transform.position, _target.position);
+                if (_path.Count > 1)
+                {
+                    _moveTarget = _path[_pathIndex = 0];
+                }
             }
+
+            _accumPFTime += Time.deltaTime;
+
             Vector3 m = _moveTarget - transform.position; m.y = 0f;
             if (m.magnitude > 2.0f)
             {
