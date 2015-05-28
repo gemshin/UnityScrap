@@ -56,7 +56,7 @@ namespace ZKit
             {
                 _accumPFTime = 0f;
                 _path = JPS.Instance.Find(transform.position, _target.position);
-                if (_path.Count > 1)
+                if (_path.Count > 0)
                 {
                     _moveTarget = _path[_pathIndex = 0];
                 }

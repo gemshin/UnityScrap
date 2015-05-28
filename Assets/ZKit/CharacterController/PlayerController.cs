@@ -56,7 +56,7 @@ namespace ZKit
                 if (Physics.Raycast(camRay, out pathHit, _camRayLength, _pathMask))
                 {
                     _path = JPS.Instance.Find(transform.position, pathHit.point);
-                    if (_path.Count > 1)
+                    if (_path.Count > 0)
                     {
                         //MoveTo(_path[0]);
                         _moveTarget = _path[_pathIndex = 0];
