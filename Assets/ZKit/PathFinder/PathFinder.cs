@@ -140,8 +140,7 @@ namespace ZKit.PathFinder
 
             JumpPointAdd(_map[_start.Y, _start.X], null);
 
-            int i = 0;
-            for (i = 1; _jumpPoint.Count != 0; ++i)
+            for (int i = 1; _jumpPoint.Count != 0; ++i)
             {
                 Node tmp = _jumpPoint[0];
                 if (Scan(tmp)) break;
@@ -149,13 +148,64 @@ namespace ZKit.PathFinder
                 JumpPointRemove(tmp);
             }
 
-            List<Vector3> result = new List<Vector3>();
+            List<Point> pathResult = new List<Point>();
             for (Node j = _end; j.Parent != null; j = j.Parent)
             {
-                result.Insert(0, DataCon.Instance.CellDatas.GetPosVec3(j.Index, j.Height));
+                pathResult.Insert(0, j.Index);
             }
-            //result.Insert(0, DataCon.Instance.CellDatas.GetPosVec3(_start.Index, _start.Height));
+            pathResult.Insert(0, _start.Index);
+
+            if (pathResult.Count > 2)
+            {
+                List<Point> delList = new List<Point>();
+                for (int i = 0; i < pathResult.Count; ++i)
+                {
+                    if (delList.Contains(pathResult[i])) continue;
+
+                    for (int j = i + 2; j < pathResult.Count; ++j)
+                    {
+                        bool canGo = true;
+                        List<Point> line = MathUtil.BresenhamLineEx(pathResult[i], pathResult[j]);
+                        if (line.Count == 0) canGo = false;
+                        foreach (Point ele in line)
+                        {
+                            if (!_map[ele.y, ele.x].CanGo)
+                            {
+                                canGo = false;
+                                break;
+                            }
+                        }
+                        if (canGo)
+                        {
+                            delList.Add(pathResult[j - 1]);
+                        }
+                    }
+                }
+                foreach (Point i in delList)
+                {
+                    pathResult.Remove(i);
+                }
+            }
+            pathResult.RemoveAt(0);
+            List<Vector3> result = new List<Vector3>();
+            foreach (Point ele in pathResult)
+            {
+                result.Add(DataCon.Instance.CellDatas.GetPosVec3(_map[ele.y, ele.x].Index, _map[ele.y, ele.x].Height));
+            }
+            
             return result;
+            //List<Vector3> result = new List<Vector3>();
+            //for (Node j = _end; j.Parent != null; j = j.Parent)
+            //{
+            //    result.Insert(0, DataCon.Instance.CellDatas.GetPosVec3(j.Index, j.Height));
+            //}
+            ////result.Insert(0, DataCon.Instance.CellDatas.GetPosVec3(_start.Index, _start.Height));
+            //return result;
+        }
+
+        private void optimization(ref List<Vector3> value)
+        {
+            
         }
 
         public List<Point> Find(Point start, Point end)
@@ -171,8 +221,8 @@ namespace ZKit.PathFinder
             System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
             sw.Start();
             //////////////////////////////////////////////////
-            int i = 0;
-            for (i = 1; _jumpPoint.Count != 0; ++i)
+            int findCount = 0;
+            for (int i = 1; _jumpPoint.Count != 0; ++i, ++findCount)
             {
                 Node tmp = _jumpPoint[0];
                 if (Scan(tmp)) break;
@@ -181,15 +231,47 @@ namespace ZKit.PathFinder
             }
             //////////////////////////////////////////////////
             sw.Stop();
-            Debug.Log(string.Format("J길찾기 {0} 회전. 시간 : {1} ms", i, sw.ElapsedMilliseconds));
+            Debug.Log(string.Format("J길찾기 {0} 회전. 시간 : {1} ms", findCount, sw.ElapsedMilliseconds));
             //////////////////////////////////////////////////
-            List<Point> result = new List<Point>();
+            List<Point> pathResult = new List<Point>();
             for (Node j = _end; j.Parent != null; j = j.Parent)
             {
-                result.Insert(0, j.Index);
+                pathResult.Insert(0, j.Index);
             }
-            result.Insert(0, _start.Index);
-            return result;
+            pathResult.Insert(0, _start.Index);
+
+            if (pathResult.Count > 2)
+            {
+                List<Point> delList = new List<Point>();
+                for (int i = 0; i < pathResult.Count; ++i)
+                {
+                    if (delList.Contains(pathResult[i])) continue;
+
+                    for (int j = i + 2; j < pathResult.Count; ++j)
+                    {
+                        bool canGo = true;
+                        List<Point> line = MathUtil.BresenhamLineEx(pathResult[i], pathResult[j]);
+                        if (line.Count == 0) canGo = false;
+                        foreach (Point ele in line)
+                        {
+                            if (!_map[ele.y, ele.x].CanGo)
+                            {
+                                canGo = false;
+                                break;
+                            }
+                        }
+                        if (canGo)
+                            delList.Add(pathResult[j - 1]);
+                    }
+                }
+                foreach (Point i in delList)
+                {
+                    pathResult.Remove(i);
+                }
+            }
+            //pathResult.RemoveAt(0);
+
+            return pathResult;
         }
 
         private bool Scan(Node current)

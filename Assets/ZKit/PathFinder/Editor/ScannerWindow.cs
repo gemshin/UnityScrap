@@ -62,10 +62,6 @@ public class ScannerWindow : EditorWindow
     const string CELLTYPE = "CellType";
     #endregion
 
-    bool testP = false;
-    Point p1;
-    Point p2;
-
     [MenuItem("TEST/Scanner")]
     static void Init()
     {
@@ -196,18 +192,6 @@ public class ScannerWindow : EditorWindow
 
                     _testHeroCurIndex = 1;
                     _testHeroMoveTime = 0f;
-
-                    if (!testP)
-                    {
-                        p1 = _testClickedIndex;
-                        testP = true;
-                    }
-                    else 
-                    {
-                        p2 = _testClickedIndex;
-                        testP = false;
-                    }
-
                 }
                 sceneView.Repaint();
             }
@@ -246,26 +230,6 @@ public class ScannerWindow : EditorWindow
             Vector3 clickedPoint = cells.GetPosVec3(_testClickedIndex, cells[_testClickedIndex.y, _testClickedIndex.x].Height + _gridGap);
             Handles.DotCap(0, clickedPoint, Quaternion.identity, 0.1f * HandleUtility.GetHandleSize(clickedPoint));
             #endregion
-
-            {
-                Vector3 testP1 = cells.GetPosVec3(p1, cells[p1.y, p1.x].Height + _gridGap);
-                Vector3 testP2 = cells.GetPosVec3(p2, cells[p2.y, p2.x].Height + _gridGap);
-                Handles.color = Color.red;
-                Handles.DotCap(0, testP1, Quaternion.identity, 0.1f * HandleUtility.GetHandleSize(testP1));
-                Handles.color = Color.blue;
-                Handles.DotCap(0, testP2, Quaternion.identity, 0.1f * HandleUtility.GetHandleSize(testP2));
-
-                List<Point> r = MathUtil.BresenhamLine(p1, p2);
-                foreach (Point e in r)
-                {
-                    Handles.color = Color.yellow;
-                    Vector3 t = cells.GetPosVec3(e, cells[e.y, e.x].Height + _gridGap);
-                    Handles.DotCap(0, t, Quaternion.identity, 0.3f);
-                }
-
-                Handles.color = Color.white;
-                Handles.DrawLine(testP1, testP2);
-            }
         }
     }
 
@@ -305,7 +269,7 @@ public class ScannerWindow : EditorWindow
         }
         #endregion
 
-        SceneView.lastActiveSceneView.Repaint();
+        //SceneView.lastActiveSceneView.Repaint();
     }
 
     [DrawGizmo(GizmoType.NotSelected | GizmoType.Selected)]
