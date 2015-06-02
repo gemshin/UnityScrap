@@ -107,7 +107,7 @@ namespace ZKit
             ret.Add(p1);
             int d = 2*dp.y - dp.x; // first D
             int y = 0;
-            for (int x = 1; x <= dp.x; ++x) // cell 크기가 1X1 인 가정.
+            for (int x = 1; x <= dp.x; ++x)
             {
                 if (d > 0)
                 {
@@ -167,15 +167,15 @@ namespace ZKit
             }
 
             dp = SwitchToOctantZeroFrom(octant, dp);
-            float dd = (float)dp.y / (float)dp.x;
+            float d = (float)dp.y / (float)dp.x;
 
-            if (dd == 1) return ret;
+            if (d == 1) return ret;
 
             ret.Add(p1);
 
-            for (int x = 1; x < dp.x; ++x) // cell 크기가 1X1 인 가정.
+            for (int x = 1; x < dp.x; ++x)
             {
-                float tmp = dd * (float)x;
+                float tmp = d * (float)x;
                 int y = (int)tmp;
                 float dec = tmp - y;
 

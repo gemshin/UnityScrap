@@ -269,7 +269,7 @@ public class ScannerWindow : EditorWindow
         }
         #endregion
 
-        //SceneView.lastActiveSceneView.Repaint();
+        SceneView.lastActiveSceneView.Repaint();
     }
 
     [DrawGizmo(GizmoType.NotSelected | GizmoType.Selected)]
