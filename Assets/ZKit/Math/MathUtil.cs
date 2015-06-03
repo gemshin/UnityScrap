@@ -189,7 +189,7 @@ namespace ZKit
             return ret;
         }
 
-        static public List<UnityEngine.Vector3> BresenhamLineEx(UnityEngine.Vector3 p1, UnityEngine.Vector3 p2)
+        static public List<UnityEngine.Vector3> SupercoverLine(UnityEngine.Vector3 p1, UnityEngine.Vector3 p2)
         {
             List<UnityEngine.Vector3> ret = new List<UnityEngine.Vector3>();
             UnityEngine.Vector3 dp = p2 - p1;
