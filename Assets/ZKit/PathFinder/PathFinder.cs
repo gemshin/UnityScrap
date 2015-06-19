@@ -86,7 +86,7 @@ namespace ZKit.PathFinder
 
             _countX = DataCon.Instance.CellDatas.CountX;
             _countY = DataCon.Instance.CellDatas.CountY;
-            _heightLimit = DataCon.Instance.CellDatas.HeightLimit * DataCon.Instance.CellDatas.CellSize;
+            _heightLimit = DataCon.Instance.CellDatas.HeightLimit;// *DataCon.Instance.CellDatas.CellSize;
             _map = new Node[_countY, _countX];
 
             for (int y = 0; y < _countY; ++y)

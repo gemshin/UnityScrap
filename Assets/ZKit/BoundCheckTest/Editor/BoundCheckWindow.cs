@@ -13,18 +13,27 @@ public class BoundCheckWindow : EditorWindow
     private const float _halfSquarX = 0.5f;
     private const float _halfSquarZ = 0.5f;
     private readonly Vector3[] _squar = new Vector3[4];
-
     #endregion
+
+    #region box
+    private static Box _boxx = new Box();
 
     private static Vector3[] _box = new Vector3[4];
     private static Vector2 _boxPos = new Vector3(3, 5);
     private static Vector2 _boxScale = new Vector3(2, 1);
+    #endregion
 
-    private static Matrix4x4 _mat4Custom;
-    private static Matrix4x4 _mat4TRS;
+    #region capsule
+    private static Vector3 _capsuleLocalCenter = new Vector3();
+    private static float _capsuleRadius = 0.5f;
+    private static float _capsuleHeight = 2f; 
+    #endregion
+
+    //private static Matrix4x4 _mat4Custom;
+    //private static Matrix4x4 _mat4TRS;
     private static Matrix4x4 _matbox;
 
-    private float _ang = 0f;
+    private static float _ang = 0f;
 
     [MenuItem("TEST/BoundCheck")]
     static void Init()
@@ -41,7 +50,9 @@ public class BoundCheckWindow : EditorWindow
         _squar[0] = new Vector3(-_halfSquarX,0f,_halfSquarZ);
         _squar[1] = new Vector3(_halfSquarX,0f,_halfSquarZ);
         _squar[2] = new Vector3(-_halfSquarX,0f,-_halfSquarZ);
-        _squar[3] = new Vector3(_halfSquarX,0f,-_halfSquarZ); 
+        _squar[3] = new Vector3(_halfSquarX,0f,-_halfSquarZ);
+
+        _boxx.Rotate = new Vector3(0f, 90f, 0f);
 
         _testMode = true;
     }
@@ -111,6 +122,11 @@ public class BoundCheckWindow : EditorWindow
         Gizmos.DrawLine(_box[1], _box[3]);
         Gizmos.DrawLine(_box[3], _box[2]);
         Gizmos.DrawLine(_box[2], _box[0]);
+
+        float ang = _ang * Mathf.Deg2Rad * -1f;
+        _boxx.Rotate = new Vector3(0f, _ang, 0f);
+        _boxx.DrawGizmo(true);
+        DebugExtension.DrawCapsule(_capsuleLocalCenter, Color.cyan, _capsuleHeight, _capsuleRadius);
     }
 
     private bool IsInZone(Vector3 pos, Vector3 boxPos, Vector3 boxScale, float boxRotation)
@@ -158,27 +174,27 @@ public class BoundCheckWindow : EditorWindow
 
     private void Calculate()
     {
-        Vector3 pos = new Vector3(_boxPos.x, 1f, _boxPos.y);
+        //Vector3 pos = new Vector3(_boxPos.x, 1f, _boxPos.y);
         Vector3 scale = new Vector3(_boxScale.x, 0f, _boxScale.y);
         float ang = _ang * Mathf.Deg2Rad;
 
         #region TRS
-        _mat4TRS = Matrix4x4.TRS(pos + Vector3.back * 4, Quaternion.AngleAxis(_ang, Vector3.down), scale); 
+        //_mat4TRS = Matrix4x4.TRS(pos + Vector3.back * 4, Quaternion.AngleAxis(_ang, Vector3.down), scale); 
         #endregion
 
         #region Custom
-        _mat4Custom.SetRow(0, Vector4.zero);
-        _mat4Custom.SetRow(1, Vector4.zero);
-        _mat4Custom.SetRow(2, Vector4.zero);
-        _mat4Custom.SetRow(3, Vector4.zero);
-        _mat4Custom.m00 = 1; _mat4Custom.m11 = 1; _mat4Custom.m22 = 1; _mat4Custom.m33 = 1f;
-        _mat4Custom.SetColumn(3, pos + Vector3.back * 2); // transpose
+        //_mat4Custom.SetRow(0, Vector4.zero);
+        //_mat4Custom.SetRow(1, Vector4.zero);
+        //_mat4Custom.SetRow(2, Vector4.zero);
+        //_mat4Custom.SetRow(3, Vector4.zero);
+        //_mat4Custom.m00 = 1; _mat4Custom.m11 = 1; _mat4Custom.m22 = 1; _mat4Custom.m33 = 1f;
+        //_mat4Custom.SetColumn(3, pos + Vector3.back * 2); // transpose
 
-        _mat4Custom.m00 = Mathf.Cos(ang); _mat4Custom.m02 = -Mathf.Sin(ang);
-        _mat4Custom.m20 = Mathf.Sin(ang); _mat4Custom.m22 = Mathf.Cos(ang);
-        _mat4Custom.m00 *= scale.x; _mat4Custom.m01 *= scale.y; _mat4Custom.m02 *= scale.z;
-        _mat4Custom.m10 *= scale.x; _mat4Custom.m11 *= scale.y; _mat4Custom.m12 *= scale.z;
-        _mat4Custom.m20 *= scale.x; _mat4Custom.m21 *= scale.y; _mat4Custom.m22 *= scale.z; 
+        //_mat4Custom.m00 = Mathf.Cos(ang); _mat4Custom.m02 = -Mathf.Sin(ang);
+        //_mat4Custom.m20 = Mathf.Sin(ang); _mat4Custom.m22 = Mathf.Cos(ang);
+        //_mat4Custom.m00 *= scale.x; _mat4Custom.m01 *= scale.y; _mat4Custom.m02 *= scale.z;
+        //_mat4Custom.m10 *= scale.x; _mat4Custom.m11 *= scale.y; _mat4Custom.m12 *= scale.z;
+        //_mat4Custom.m20 *= scale.x; _mat4Custom.m21 *= scale.y; _mat4Custom.m22 *= scale.z; 
         #endregion
 
         _matbox.SetRow(0, Vector4.zero);
@@ -228,17 +244,17 @@ public class BoundCheckWindow : EditorWindow
 
         EditorGUILayout.Separator();
 
-        EditorGUILayout.LabelField("custom matrix 0", string.Format("{0}", _mat4Custom.GetRow(0)));
-        EditorGUILayout.LabelField("custom matrix 1", string.Format("{0}", _mat4Custom.GetRow(1)));
-        EditorGUILayout.LabelField("custom matrix 2", string.Format("{0}", _mat4Custom.GetRow(2)));
-        EditorGUILayout.LabelField("custom matrix 3", string.Format("{0}", _mat4Custom.GetRow(3)));
+        //EditorGUILayout.LabelField("custom matrix 0", string.Format("{0}", _mat4Custom.GetRow(0)));
+        //EditorGUILayout.LabelField("custom matrix 1", string.Format("{0}", _mat4Custom.GetRow(1)));
+        //EditorGUILayout.LabelField("custom matrix 2", string.Format("{0}", _mat4Custom.GetRow(2)));
+        //EditorGUILayout.LabelField("custom matrix 3", string.Format("{0}", _mat4Custom.GetRow(3)));
 
         EditorGUILayout.Separator();
 
-        EditorGUILayout.LabelField("TRS matrix 0", string.Format("{0}", _mat4TRS.GetRow(0)));
-        EditorGUILayout.LabelField("TRS matrix 1", string.Format("{0}", _mat4TRS.GetRow(1)));
-        EditorGUILayout.LabelField("TRS matrix 2", string.Format("{0}", _mat4TRS.GetRow(2)));
-        EditorGUILayout.LabelField("TRS matrix 3", string.Format("{0}", _mat4TRS.GetRow(3)));
+        //EditorGUILayout.LabelField("TRS matrix 0", string.Format("{0}", _mat4TRS.GetRow(0)));
+        //EditorGUILayout.LabelField("TRS matrix 1", string.Format("{0}", _mat4TRS.GetRow(1)));
+        //EditorGUILayout.LabelField("TRS matrix 2", string.Format("{0}", _mat4TRS.GetRow(2)));
+        //EditorGUILayout.LabelField("TRS matrix 3", string.Format("{0}", _mat4TRS.GetRow(3)));
 
         EditorGUILayout.EndVertical();
     }

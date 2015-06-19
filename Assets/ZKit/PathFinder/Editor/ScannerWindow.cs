@@ -467,9 +467,9 @@ public class ScannerWindow : EditorWindow
                     if (element.Type == CellType.Normal)
                     {
                         continue;
-                        _testAsHero = cells.GetPosVec3(element.Index, element.Y);
+                        //_testAsHero = cells.GetPosVec3(element.Index, element.Y);
                         //_testJpsHero = cells.GetPosVec3(element.Index, element.Y);
-                        break;
+                        //break;
                     }
                 }
             }
