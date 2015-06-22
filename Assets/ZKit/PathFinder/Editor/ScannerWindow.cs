@@ -53,12 +53,12 @@ public class ScannerWindow : EditorWindow
     const string HEIGHTLIMIT = "HeightLimit";
     const string STARTPOS = "StartPosition";
     const string CELLWIDTH = "Width";
-    const string CELLHEIGHT = "Height";
+    const string CELLHEIGHT = "height";
     const string CELLS = "Cells";
     const string CELL = "Cell";
     const string X = "X";
     const string Y = "Y";
-    const string HEIGHT = "Height";
+    const string HEIGHT = "height";
     const string CELLTYPE = "CellType";
     #endregion
 
@@ -392,7 +392,7 @@ public class ScannerWindow : EditorWindow
         EditorGUILayout.LabelField("1st Step - Scan");
         EditorGUILayout.EndVertical();
         cells.CellSize = EditorGUILayout.FloatField("CellSize", cells.CellSize);
-        cells.HeightLimit = EditorGUILayout.FloatField("Height Limit", cells.HeightLimit);
+        cells.HeightLimit = EditorGUILayout.FloatField("height Limit", cells.HeightLimit);
         if (GUILayout.Button("Scan the map"))
         {
             cells.Clear();
@@ -448,7 +448,7 @@ public class ScannerWindow : EditorWindow
             _showIndex = EditorGUILayout.Toggle("- Show Index", _showIndex);
             _viewDistance = EditorGUILayout.Slider("- View Distance", _viewDistance, 10f, 100f);
             EditorGUILayout.LabelField("- Map Index Width", ((int)(cells.MapBound.width / cells.CellSize)).ToString());
-            EditorGUILayout.LabelField("- Map Index Height", ((int)(cells.MapBound.height / cells.CellSize)).ToString());
+            EditorGUILayout.LabelField("- Map Index height", ((int)(cells.MapBound.height / cells.CellSize)).ToString());
             EditorGUILayout.EndVertical();
             #endregion
 

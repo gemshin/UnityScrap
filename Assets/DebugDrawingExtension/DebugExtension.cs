@@ -1419,14 +1419,11 @@ public static class DebugExtension
 		Gizmos.color = oldColor;
 	}
 
-    public static void DrawCapsule(Vector3 center, Color color, float height, float radius = 1)
+    public static void DrawCapsule(Vector3 center, float height, float radius = 1)
     {
         Vector3 up = Vector3.up * radius;
         Vector3 forward = Vector3.Slerp(up, -up, 0.5f);
         Vector3 right = Vector3.Cross(up, forward).normalized * radius;
-
-        Color oldColor = Gizmos.color;
-        Gizmos.color = color;
 
         float sideLength = Mathf.Max(0, (height * 0.5f) - radius);
 
@@ -1434,8 +1431,8 @@ public static class DebugExtension
         Vector3 end = center + (Vector3.up * sideLength);
 
         //Radial circles
-        DebugExtension.DrawCircle(start, up, color, radius);
-        DebugExtension.DrawCircle(end, -up, color, radius);
+        DebugExtension.DrawCircle(start, up, radius);
+        DebugExtension.DrawCircle(end, -up, radius);
 
         //Side lines
         Gizmos.DrawLine(start + right, end + right);
@@ -1458,8 +1455,6 @@ public static class DebugExtension
             Gizmos.DrawLine(Vector3.Slerp(forward, up, i / 25.0f) + end, Vector3.Slerp(forward, up, (i - 1) / 25.0f) + end);
             Gizmos.DrawLine(Vector3.Slerp(-forward, up, i / 25.0f) + end, Vector3.Slerp(-forward, up, (i - 1) / 25.0f) + end);
         }
-
-        Gizmos.color = oldColor;
     }
 	
 	/// <summary>

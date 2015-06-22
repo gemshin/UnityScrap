@@ -63,7 +63,7 @@ public class Example : MonoBehaviour {
 		if(debugCone) DebugExtension.DrawCone(new Vector3(50, 0, 0), debugCone_Direction, debugCone_Color, debugCone_Angle);
 		if(debugArrow) DebugExtension.DrawArrow(new Vector3(60, 0, 0), debugArrow_Direction, debugArrow_Color);
 		if(debugCapsule) DebugExtension.DrawCapsule(new Vector3(70, 0, 0), debugCapsule_End, debugCapsule_Color, debugCapsule_Radius);
-        if (debugCapsule) DebugExtension.DrawCapsule(new Vector3(80, 0, 0), debugCapsule_Color, 20, debugCapsule_Radius);
+        if (debugCapsule) DebugExtension.DrawCapsule(new Vector3(80, 0, 0), 20, debugCapsule_Radius);
 
 	}
 	

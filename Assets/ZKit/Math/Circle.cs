@@ -3,24 +3,24 @@ using System.Collections;
 
 namespace ZKit
 {
-    public class Capsule
+    public class Circle
     {
         public Vector3 position;
-        public float height;
         public float radius;
+        public Vector3 up;
 
-        public Capsule()
+        public Circle()
         {
             position = Vector3.zero;
-            height = 2f;
             radius = 0.5f;
+            up = Vector3.up;
         }
 
-        public Capsule(Vector3 pos)
+        public Circle(Vector3 pos)
         {
             position = pos;
-            height = 2f;
             radius = 0.5f;
+            up = Vector3.up;
         }
 
         public bool Check2DDot(Vector2 dot)
@@ -33,7 +33,7 @@ namespace ZKit
 
         public void DrawGizmo()
         {
-            GizmosExtension.DrawCapsule(position, height, radius);
+            GizmosExtension.DrawCircle(position, up, radius);
         }
     }
 }
