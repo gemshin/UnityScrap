@@ -49,16 +49,34 @@ namespace ZKit
             Vector2 lineOriginStart = start - new Vector2(position.x, position.z);
             Vector2 lineOriginEnd = end - new Vector2(position.x, position.z);
 
-            {
-                float rad = rotate.y * Mathf.Deg2Rad;
-                float cos = Mathf.Cos(rad);
-                float sin = Mathf.Sin(rad);
+            float rad = rotate.y * Mathf.Deg2Rad;
+            float cos = Mathf.Cos(rad);
+            float sin = Mathf.Sin(rad);
 
-                float sx = (lineOriginStart.x * cos) + (lineOriginStart.y * -sin);
-                float sy = (lineOriginStart.x * sin) + (lineOriginStart.y * cos);
-                float ex = (lineOriginEnd.x * cos) + (lineOriginEnd.y * -sin);
-                float ey = (lineOriginEnd.x * sin) + (lineOriginEnd.y * cos);
-            }
+            float halfWidth = size.x * 0.5f;
+            float halfHeight = size.y * 0.5f;
+
+            Vector2 originStart = new Vector2();
+            Vector2 originEnd = new Vector2();
+            originStart.x = (lineOriginStart.x * cos) + (lineOriginStart.y * -sin);
+            originStart.y = (lineOriginStart.x * sin) + (lineOriginStart.y * cos);
+            originEnd.x = (lineOriginEnd.x * cos) + (lineOriginEnd.y * -sin);
+            originEnd.y = (lineOriginEnd.x * sin) + (lineOriginEnd.y * cos);
+
+            Vector2 tl = new Vector2(-halfWidth, halfHeight);
+            Vector2 tr = new Vector2(halfWidth, halfHeight);
+            Vector2 bl = new Vector2(-halfWidth, -halfHeight);
+            Vector2 br = new Vector2(halfWidth, -halfHeight);
+
+            Vector2 pResult;
+            if (MathUtil.Intersects(originStart, originEnd, tl, bl, out pResult))
+                return true;
+            if (MathUtil.Intersects(originStart, originEnd, tl, tr, out pResult))
+                return true;
+            if (MathUtil.Intersects(originStart, originEnd, tr, br, out pResult))
+                return true;
+            if (MathUtil.Intersects(originStart, originEnd, bl, br, out pResult))
+                return true;
 
             return false;
         }

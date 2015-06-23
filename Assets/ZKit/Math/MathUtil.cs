@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System;
+using UnityEngine;
 
 namespace ZKit
 {
@@ -253,6 +254,33 @@ namespace ZKit
             ret.Add(p2);
 
             return ret;
+        }
+
+        static public bool Intersects(Vector2 a1, Vector2 a2, Vector2 b1, Vector2 b2, out Vector2 intersection)
+        {
+            intersection = Vector2.zero;
+
+            Vector2 a = a2 - a1;
+            Vector2 b = b2 - b1;
+            float aDotbPerp_ = Vector2.Dot(a, b);
+            float aDotbPerp = a.x * b.y - a.y * b.x;
+
+            // if b dot d == 0, it means the lines are parallel so have infinite intersection points
+            if (aDotbPerp == 0)
+                return false;
+
+            Vector2 c = b1 - a1;
+            float t = (c.x * b.y - c.y * b.x) / aDotbPerp;
+            if (t < 0 || t > 1)
+                return false;
+
+            float u = (c.x * a.y - c.y * a.x) / aDotbPerp;
+            if (u < 0 || u > 1)
+                return false;
+
+            intersection = a1 + t * a;
+
+            return true;
         }
     }
 }
