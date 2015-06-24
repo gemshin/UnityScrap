@@ -44,24 +44,24 @@ namespace ZKit
             return false;
         }
 
-        public bool Check2DLine(Vector2 start, Vector2 end)
+        public bool Check2DLine(Vector2 lineStart, Vector2 lineEnd)
         {
-            Vector2 lineOriginStart = start - new Vector2(position.x, position.z);
-            Vector2 lineOriginEnd = end - new Vector2(position.x, position.z);
+            Vector2 boxSpaceStart = lineStart - new Vector2(position.x, position.z);
+            Vector2 boxSpaceEnd = lineEnd - new Vector2(position.x, position.z);
 
             float rad = rotate.y * Mathf.Deg2Rad;
             float cos = Mathf.Cos(rad);
             float sin = Mathf.Sin(rad);
 
-            float halfWidth = size.x * 0.5f;
-            float halfHeight = size.y * 0.5f;
-
             Vector2 originStart = new Vector2();
             Vector2 originEnd = new Vector2();
-            originStart.x = (lineOriginStart.x * cos) + (lineOriginStart.y * -sin);
-            originStart.y = (lineOriginStart.x * sin) + (lineOriginStart.y * cos);
-            originEnd.x = (lineOriginEnd.x * cos) + (lineOriginEnd.y * -sin);
-            originEnd.y = (lineOriginEnd.x * sin) + (lineOriginEnd.y * cos);
+            originStart.x = (boxSpaceStart.x * cos) + (boxSpaceStart.y * -sin);
+            originStart.y = (boxSpaceStart.x * sin) + (boxSpaceStart.y * cos);
+            originEnd.x = (boxSpaceEnd.x * cos) + (boxSpaceEnd.y * -sin);
+            originEnd.y = (boxSpaceEnd.x * sin) + (boxSpaceEnd.y * cos);
+
+            float halfWidth = size.x * 0.5f;
+            float halfHeight = size.y * 0.5f;
 
             Vector2 tl = new Vector2(-halfWidth, halfHeight);
             Vector2 tr = new Vector2(halfWidth, halfHeight);

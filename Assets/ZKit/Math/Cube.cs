@@ -25,7 +25,7 @@ namespace ZKit
         public bool Check2DDot(Vector2 dot)
         {
             Vector2 dotOrigin = dot - new Vector2(position.x, position.z);
-            float boxRadius = Mathf.Sqrt((size.x * size.x) + (size.y * size.y)) * 0.5f;
+            float boxRadius = Mathf.Sqrt((size.x * size.x) + (size.z * size.z)) * 0.5f;
             if (dotOrigin.magnitude <= boxRadius)
             {
                 float rad = rotate.y * Mathf.Deg2Rad;
@@ -40,6 +40,43 @@ namespace ZKit
                 if ((size.x * 0.5f) >= x && (size.x * -0.5f) <= x && (size.y * 0.5f) >= y && (size.y * -0.5f) <= y)
                     return true;
             }
+            return false;
+        }
+
+        public bool Check2DLine(Vector2 lineStart, Vector2 lineEnd)
+        {
+            Vector2 boxSpaceStart = lineStart - new Vector2(position.x, position.z);
+            Vector2 boxSpaceEnd = lineEnd - new Vector2(position.x, position.z);
+
+            float rad = rotate.y * Mathf.Deg2Rad;
+            float cos = Mathf.Cos(rad);
+            float sin = Mathf.Sin(rad);
+
+            Vector2 originStart = new Vector2();
+            Vector2 originEnd = new Vector2();
+            originStart.x = (boxSpaceStart.x * cos) + (boxSpaceStart.y * -sin);
+            originStart.y = (boxSpaceStart.x * sin) + (boxSpaceStart.y * cos);
+            originEnd.x = (boxSpaceEnd.x * cos) + (boxSpaceEnd.y * -sin);
+            originEnd.y = (boxSpaceEnd.x * sin) + (boxSpaceEnd.y * cos);
+
+            float halfWidth = size.x * 0.5f;
+            float halfHeight = size.z * 0.5f;
+
+            Vector2 tl = new Vector2(-halfWidth, halfHeight);
+            Vector2 tr = new Vector2(halfWidth, halfHeight);
+            Vector2 bl = new Vector2(-halfWidth, -halfHeight);
+            Vector2 br = new Vector2(halfWidth, -halfHeight);
+
+            Vector2 pResult;
+            if (MathUtil.Intersects(originStart, originEnd, tl, bl, out pResult))
+                return true;
+            if (MathUtil.Intersects(originStart, originEnd, tl, tr, out pResult))
+                return true;
+            if (MathUtil.Intersects(originStart, originEnd, tr, br, out pResult))
+                return true;
+            if (MathUtil.Intersects(originStart, originEnd, bl, br, out pResult))
+                return true;
+
             return false;
         }
 

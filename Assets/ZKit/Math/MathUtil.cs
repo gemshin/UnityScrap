@@ -262,7 +262,6 @@ namespace ZKit
 
             Vector2 a = a2 - a1;
             Vector2 b = b2 - b1;
-            float aDotbPerp_ = Vector2.Dot(a, b);
             float aDotbPerp = a.x * b.y - a.y * b.x;
 
             // if b dot d == 0, it means the lines are parallel so have infinite intersection points
