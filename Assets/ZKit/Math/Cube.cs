@@ -22,7 +22,7 @@ namespace ZKit
             rotate = Vector3.zero;
         }
 
-        public bool Check2DDot(Vector2 dot)
+        public bool CollisionDetect2DDot(Vector2 dot)
         {
             Vector2 dotOrigin = dot - new Vector2(position.x, position.z);
             float boxRadius = Mathf.Sqrt((size.x * size.x) + (size.z * size.z)) * 0.5f;
@@ -43,7 +43,7 @@ namespace ZKit
             return false;
         }
 
-        public bool Check2DLine(Vector2 lineStart, Vector2 lineEnd)
+        public bool CollisionDetect2DLine(Vector2 lineStart, Vector2 lineEnd)
         {
             Vector2 boxSpaceStart = lineStart - new Vector2(position.x, position.z);
             Vector2 boxSpaceEnd = lineEnd - new Vector2(position.x, position.z);

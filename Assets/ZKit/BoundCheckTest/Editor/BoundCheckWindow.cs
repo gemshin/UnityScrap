@@ -29,6 +29,8 @@ public class BoundCheckWindow : EditorWindow
     private static bool _clickMode_cur = false;
     private static bool _clickMode_prev = false;
 
+    private static Color _lineColor = Color.red;
+
     #region box
     private static Box _box = new Box();
     #endregion
@@ -91,7 +93,7 @@ public class BoundCheckWindow : EditorWindow
 
             #region Draw Click point
             bool buttonClicked = false;
-            Handles.color = Color.red;
+            Handles.color = _lineColor;
             if (Handles.Button(_currentClickedPos, Quaternion.identity, 0.1f * HandleUtility.GetHandleSize(_currentClickedPos), 0.1f, Handles.DotCap))
             {
                 _clickMode_cur = !_clickMode_cur;
@@ -105,7 +107,7 @@ public class BoundCheckWindow : EditorWindow
 
             if (_testMode == TestMode.Line || _testMode == TestMode.Ray)
             {
-                Handles.color = new Color(0.8f, 0f, 0f);
+                Handles.color = _lineColor;
                 if (Handles.Button(_prevClickedPos, Quaternion.identity, 0.1f * HandleUtility.GetHandleSize(_prevClickedPos), 0.1f, Handles.DotCap))
                 {
                     _clickMode_prev = !_clickMode_prev;
@@ -156,19 +158,14 @@ public class BoundCheckWindow : EditorWindow
 
         if (_testMode == TestMode.Line)
         {
-            Gizmos.color = Color.green;
+            Gizmos.color = _lineColor;
             Gizmos.DrawLine(_prevClickedPos, _currentClickedPos);
         }
         else if (_testMode == TestMode.Ray)
         {
-            Gizmos.color = Color.green;
-            Gizmos.DrawRay(_prevClickedPos, (_currentClickedPos - _prevClickedPos) * 100);
+            Gizmos.color = _lineColor;
+            Gizmos.DrawRay(_currentClickedPos, (_prevClickedPos - _currentClickedPos) * 100);
         }
-    }
-
-    private bool IsInZone(Vector3 pos, Vector3 boxPos, Vector3 boxScale, float boxRotation)
-    {
-        return false;
     }
 
     void OnGUI()
@@ -231,16 +228,20 @@ public class BoundCheckWindow : EditorWindow
             }
             
         }
+        bool isIn = false;
         switch (_boundType)
         {
             case BoundType.Box:
                 switch(_testMode)
                 {
                     case TestMode.Dot:
-                        EditorGUILayout.LabelField("In ?", _box.Check2DDot(new Vector2(_currentClickedPos.x, _currentClickedPos.z)) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = _box.CollisionDetect2DDot(new Vector2(_currentClickedPos.x, _currentClickedPos.z))) ? "Yes" : "No");
                         break;
                     case TestMode.Line:
-                        EditorGUILayout.LabelField("In ?", _box.Check2DLine(new Vector2(_currentClickedPos.x, _currentClickedPos.z), new Vector2(_prevClickedPos.x, _prevClickedPos.z)) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = _box.CollisionDetect2DLine(new Vector2(_currentClickedPos.x, _currentClickedPos.z), new Vector2(_prevClickedPos.x, _prevClickedPos.z))) ? "Yes" : "No");
+                        break;
+                    case TestMode.Ray:
+                        EditorGUILayout.LabelField("In ?", (isIn = _box.CollisionDetect2DRay(new Vector2(_currentClickedPos.x, _currentClickedPos.z), new Vector2(_prevClickedPos.x, _prevClickedPos.z))) ? "Yes" : "No");
                         break;
                 }
                 break;
@@ -248,10 +249,13 @@ public class BoundCheckWindow : EditorWindow
                 switch (_testMode)
                 {
                     case TestMode.Dot:
-                        EditorGUILayout.LabelField("In ?", _cube.Check2DDot(new Vector2(_currentClickedPos.x, _currentClickedPos.z)) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = _cube.CollisionDetect2DDot(new Vector2(_currentClickedPos.x, _currentClickedPos.z))) ? "Yes" : "No");
                         break;
                     case TestMode.Line:
-                        EditorGUILayout.LabelField("In ?", _cube.Check2DLine(new Vector2(_currentClickedPos.x, _currentClickedPos.z), new Vector2(_prevClickedPos.x, _prevClickedPos.z)) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = _cube.CollisionDetect2DLine(new Vector2(_currentClickedPos.x, _currentClickedPos.z), new Vector2(_prevClickedPos.x, _prevClickedPos.z))) ? "Yes" : "No");
+                        break;
+                    case TestMode.Ray:
+                        //EditorGUILayout.LabelField("In ?", (isIn = _cube.CollisionDetect2DRay(new Vector2(_currentClickedPos.x, _currentClickedPos.z), new Vector2(_prevClickedPos.x, _prevClickedPos.z))) ? "Yes" : "No");
                         break;
                 }
                 break;
@@ -259,9 +263,14 @@ public class BoundCheckWindow : EditorWindow
                 switch (_testMode)
                 {
                     case TestMode.Dot:
-                        EditorGUILayout.LabelField("In ?", _circle.Check2DDot(new Vector2(_currentClickedPos.x, _currentClickedPos.z)) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = _circle.CollisionDetect2DDot(new Vector2(_currentClickedPos.x, _currentClickedPos.z))) ? "Yes" : "No");
                         break;
                     case TestMode.Line:
+                        EditorGUILayout.LabelField("In ?", (isIn = _circle.CollisionDetect2DLine(new Vector2(_currentClickedPos.x, _currentClickedPos.z), new Vector2(_prevClickedPos.x, _prevClickedPos.z))) ? "Yes" : "No");
+                        break;
+                    case TestMode.Ray:
+                        Vector2 dir = new Vector2(_prevClickedPos.x, _prevClickedPos.z) - new Vector2(_currentClickedPos.x, _currentClickedPos.z);
+                        EditorGUILayout.LabelField("In ?", (isIn = _circle.CollisionDetect2DRay(new Vector2(_currentClickedPos.x, _currentClickedPos.z), dir)) ? "Yes" : "No");
                         break;
                 }
                 break;
@@ -269,13 +278,22 @@ public class BoundCheckWindow : EditorWindow
                 switch (_testMode)
                 {
                     case TestMode.Dot:
-                        EditorGUILayout.LabelField("In ?", _capsule.Check2DDot(new Vector2(_currentClickedPos.x, _currentClickedPos.z)) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = _capsule.CollisionDetect2DDot(new Vector2(_currentClickedPos.x, _currentClickedPos.z))) ? "Yes" : "No");
                         break;
                     case TestMode.Line:
+                        EditorGUILayout.LabelField("In ?", (isIn = _capsule.CollisionDetect2DLine(new Vector2(_currentClickedPos.x, _currentClickedPos.z), new Vector2(_prevClickedPos.x, _prevClickedPos.z))) ? "Yes" : "No");
+                        break;
+                    case TestMode.Ray:
+                        Vector2 dir = new Vector2(_prevClickedPos.x, _prevClickedPos.z) - new Vector2(_currentClickedPos.x, _currentClickedPos.z);
+                        EditorGUILayout.LabelField("In ?", (isIn = _capsule.CollisionDetect2DRay(new Vector2(_currentClickedPos.x, _currentClickedPos.z), dir)) ? "Yes" : "No");
                         break;
                 }
                 break;
         }
+
+        if (isIn) _lineColor = Color.green;
+        else _lineColor = Color.red;
+
         EditorGUILayout.Separator();
 
         EditorGUILayout.EndVertical();

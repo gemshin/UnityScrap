@@ -23,7 +23,7 @@ namespace ZKit
             rotate = Vector3.zero;
         }
 
-        public bool Check2DDot(Vector2 dot)
+        public bool CollisionDetect2DDot(Vector2 dot)
         {
             Vector2 dotOrigin = dot - new Vector2(position.x, position.z);
             float boxRadius = Mathf.Sqrt((size.x * size.x) + (size.y * size.y)) * 0.5f;
@@ -44,7 +44,7 @@ namespace ZKit
             return false;
         }
 
-        public bool Check2DLine(Vector2 lineStart, Vector2 lineEnd)
+        public bool CollisionDetect2DLine(Vector2 lineStart, Vector2 lineEnd)
         {
             Vector2 boxSpaceStart = lineStart - new Vector2(position.x, position.z);
             Vector2 boxSpaceEnd = lineEnd - new Vector2(position.x, position.z);
@@ -79,6 +79,36 @@ namespace ZKit
                 return true;
 
             return false;
+        }
+
+        public bool CollisionDetect2DRay(Vector2 lineStart, Vector2 direction)
+        {
+            Vector2 boxSpaceStart = lineStart - new Vector2(position.x, position.z);
+            Vector2 boxSpaceEnd = (lineStart + direction.normalized) - new Vector2(position.x, position.z);
+
+            float rad = rotate.y * Mathf.Deg2Rad;
+            float cos = Mathf.Cos(rad);
+            float sin = Mathf.Sin(rad);
+
+            Vector2 originStart = new Vector2();
+            Vector2 originEnd = new Vector2();
+            originStart.x = (boxSpaceStart.x * cos) + (boxSpaceStart.y * -sin);
+            originStart.y = (boxSpaceStart.x * sin) + (boxSpaceStart.y * cos);
+            originEnd.x = (boxSpaceEnd.x * cos) + (boxSpaceEnd.y * -sin);
+            originEnd.y = (boxSpaceEnd.x * sin) + (boxSpaceEnd.y * cos);
+
+            float halfWidth = size.x * 0.5f;
+            float halfHeight = size.y * 0.5f;
+
+            Vector2 d = originEnd - originStart;
+            float dr = d.magnitude;
+            float D = originStart.x * originEnd.y - originEnd.x * originStart.y;
+            Debug.Log(D);
+            //float di = (radius * radius) * (dr * dr) - (D * D);
+            //float di = (halfWidth * halfWidth) * (halfHeight * halfHeight)*originStart.y - (D * D);
+            float di = (halfWidth * halfWidth) - (D * D);
+            if (di < 0) return false;
+            return true;
         }
 
         public void DrawGizmo()
