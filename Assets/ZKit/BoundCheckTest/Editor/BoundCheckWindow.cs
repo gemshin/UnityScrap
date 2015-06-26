@@ -241,7 +241,8 @@ public class BoundCheckWindow : EditorWindow
                         EditorGUILayout.LabelField("In ?", (isIn = _box.CollisionDetect2DLine(new Vector2(_currentClickedPos.x, _currentClickedPos.z), new Vector2(_prevClickedPos.x, _prevClickedPos.z))) ? "Yes" : "No");
                         break;
                     case TestMode.Ray:
-                        EditorGUILayout.LabelField("In ?", (isIn = _box.CollisionDetect2DRay(new Vector2(_currentClickedPos.x, _currentClickedPos.z), new Vector2(_prevClickedPos.x, _prevClickedPos.z))) ? "Yes" : "No");
+                        Vector2 dir = new Vector2(_prevClickedPos.x, _prevClickedPos.z) - new Vector2(_currentClickedPos.x, _currentClickedPos.z);
+                        EditorGUILayout.LabelField("In ?", (isIn = _box.CollisionDetect2DRay(new Vector2(_currentClickedPos.x, _currentClickedPos.z), dir)) ? "Yes" : "No");
                         break;
                 }
                 break;

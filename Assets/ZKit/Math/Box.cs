@@ -84,7 +84,7 @@ namespace ZKit
         public bool CollisionDetect2DRay(Vector2 lineStart, Vector2 direction)
         {
             Vector2 boxSpaceStart = lineStart - new Vector2(position.x, position.z);
-            Vector2 boxSpaceEnd = (lineStart + direction.normalized) - new Vector2(position.x, position.z);
+            Vector2 boxSpaceEnd = (lineStart + (direction * 1000.0f)) - new Vector2(position.x, position.z);
 
             float rad = rotate.y * Mathf.Deg2Rad;
             float cos = Mathf.Cos(rad);
@@ -100,15 +100,22 @@ namespace ZKit
             float halfWidth = size.x * 0.5f;
             float halfHeight = size.y * 0.5f;
 
-            Vector2 d = originEnd - originStart;
-            float dr = d.magnitude;
-            float D = originStart.x * originEnd.y - originEnd.x * originStart.y;
-            Debug.Log(D);
-            //float di = (radius * radius) * (dr * dr) - (D * D);
-            //float di = (halfWidth * halfWidth) * (halfHeight * halfHeight)*originStart.y - (D * D);
-            float di = (halfWidth * halfWidth) - (D * D);
-            if (di < 0) return false;
-            return true;
+            Vector2 tl = new Vector2(-halfWidth, halfHeight);
+            Vector2 tr = new Vector2(halfWidth, halfHeight);
+            Vector2 bl = new Vector2(-halfWidth, -halfHeight);
+            Vector2 br = new Vector2(halfWidth, -halfHeight);
+
+            Vector2 pResult;
+            if (MathUtil.Intersects(originStart, originEnd, tl, bl, out pResult))
+                return true;
+            if (MathUtil.Intersects(originStart, originEnd, tl, tr, out pResult))
+                return true;
+            if (MathUtil.Intersects(originStart, originEnd, tr, br, out pResult))
+                return true;
+            if (MathUtil.Intersects(originStart, originEnd, bl, br, out pResult))
+                return true;
+
+            return false;
         }
 
         public void DrawGizmo()
