@@ -475,13 +475,13 @@ public class ScannerWindow : EditorWindow
             }
             if (_testMode)
             {
-                _testShowAsPath = EditorGUILayout.Toggle("- Show A* Line", _testShowAsPath);
+                _testShowAsPath = EditorGUILayout.Toggle("- Show A* Line2D", _testShowAsPath);
                 if (_testShowAsPath)
                 {
                     _testShowAClosedPoint = EditorGUILayout.Toggle("-- Show ClosedPoint", _testShowAClosedPoint);
                     _testShowAValue = EditorGUILayout.Toggle("-- Show A Star Value", _testShowAValue);
                 }
-                _testShowJumpPointPath = EditorGUILayout.Toggle("- Show JumpPoint Line", _testShowJumpPointPath);
+                _testShowJumpPointPath = EditorGUILayout.Toggle("- Show JumpPoint Line2D", _testShowJumpPointPath);
                 if (_testShowJumpPointPath)
                 {
                     _testShowJumpPoint = EditorGUILayout.Toggle("-- Show JumpPoint", _testShowJumpPoint);

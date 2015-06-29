@@ -22,9 +22,9 @@ namespace ZKit
             rotate = Vector3.zero;
         }
 
-        public bool CollisionDetect2DDot(Vector2 dot)
+        public bool CollisionDetect2DDot(Vector2 dot_position)
         {
-            Vector2 dotOrigin = dot - new Vector2(position.x, position.z);
+            Vector2 dotOrigin = dot_position - new Vector2(position.x, position.z);
             float boxRadius = Mathf.Sqrt((size.x * size.x) + (size.z * size.z)) * 0.5f;
             if (dotOrigin.magnitude <= boxRadius)
             {
@@ -114,6 +114,37 @@ namespace ZKit
             if (MathUtil.Intersects(originStart, originEnd, bl, br, out pResult))
                 return true;
 
+            return false;
+        }
+
+        public bool CollisionDetect2DCircle(Vector2 circle_position, float circle_radius)
+        {
+            Vector2 circleOrigin = circle_position - new Vector2(position.x, position.z);
+            float boxRadius = Mathf.Sqrt((size.x * size.x) + (size.z * size.z)) * 0.5f;
+            if (circleOrigin.magnitude - circle_radius <= boxRadius)
+            {
+                float rad = rotate.y * Mathf.Deg2Rad;
+                float cos = Mathf.Cos(rad);
+                float sin = Mathf.Sin(rad);
+
+                float x = (circleOrigin.x * cos) + (circleOrigin.y * -sin);
+                float y = (circleOrigin.x * sin) + (circleOrigin.y * cos);
+
+                circleOrigin = new Vector2(x, y);
+
+                float halfWidth = size.x * 0.5f;
+                float halfHeight = size.y * 0.5f;
+
+                Vector2 tl = new Vector2(-halfWidth, halfHeight);
+                Vector2 tr = new Vector2(halfWidth, halfHeight);
+                Vector2 bl = new Vector2(-halfWidth, -halfHeight);
+                Vector2 br = new Vector2(halfWidth, -halfHeight);
+
+                if ((circleOrigin - tl).magnitude <= circle_radius) return true;
+                if ((circleOrigin - tr).magnitude <= circle_radius) return true;
+                if ((circleOrigin - bl).magnitude <= circle_radius) return true;
+                if ((circleOrigin - br).magnitude <= circle_radius) return true;
+            }
             return false;
         }
 
