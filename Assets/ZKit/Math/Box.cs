@@ -9,6 +9,8 @@ namespace ZKit
         public Vector2 size;
         public Vector3 rotate;
 
+        public Vector2 Position2D { get { return new Vector2(position.x, position.z); } }
+
         public Box()
         {
             position = Vector3.zero;
@@ -25,7 +27,7 @@ namespace ZKit
 
         public bool CollisionDetect2DDot(Vector2 dot)
         {
-            Vector2 dotOrigin = dot - new Vector2(position.x, position.z);
+            Vector2 dotOrigin = dot - Position2D;
             float boxRadius = Mathf.Sqrt((size.x * size.x) + (size.y * size.y)) * 0.5f;
             if (dotOrigin.magnitude <= boxRadius)
             {
@@ -46,8 +48,8 @@ namespace ZKit
 
         public bool CollisionDetect2DLine(Vector2 lineStart, Vector2 lineEnd)
         {
-            Vector2 boxSpaceStart = lineStart - new Vector2(position.x, position.z);
-            Vector2 boxSpaceEnd = lineEnd - new Vector2(position.x, position.z);
+            Vector2 boxSpaceStart = lineStart - Position2D;
+            Vector2 boxSpaceEnd = lineEnd - Position2D;
 
             float rad = rotate.y * Mathf.Deg2Rad;
             float cos = Mathf.Cos(rad);
@@ -83,8 +85,8 @@ namespace ZKit
 
         public bool CollisionDetect2DRay(Vector2 lineStart, Vector2 direction)
         {
-            Vector2 boxSpaceStart = lineStart - new Vector2(position.x, position.z);
-            Vector2 boxSpaceEnd = (lineStart + (direction * 1000.0f)) - new Vector2(position.x, position.z);
+            Vector2 boxSpaceStart = lineStart - Position2D;
+            Vector2 boxSpaceEnd = (lineStart + (direction * 1000.0f)) - Position2D;
 
             float rad = rotate.y * Mathf.Deg2Rad;
             float cos = Mathf.Cos(rad);
@@ -118,35 +120,66 @@ namespace ZKit
             return false;
         }
 
-        public bool CollisionDetect2DCircle(Vector2 circle_position, float circle_radius)
+        public bool CollisionDetect2DBox(Box box)
         {
-            Vector2 circleOrigin = circle_position - new Vector2(position.x, position.z);
-            float boxRadius = Mathf.Sqrt((size.x * size.x) + (size.y * size.y)) * 0.5f;
-            if (circleOrigin.magnitude - circle_radius <= boxRadius)
-            {
-                float rad = rotate.y * Mathf.Deg2Rad;
-                float cos = Mathf.Cos(rad);
-                float sin = Mathf.Sin(rad);
+            //float rad = box.rotate.y * Mathf.Deg2Rad;
+            //float cos = Mathf.Cos(rad);
+            //float sin = Mathf.Sin(rad);
 
-                float x = (circleOrigin.x * cos) + (circleOrigin.y * -sin);
-                float y = (circleOrigin.x * sin) + (circleOrigin.y * cos);
+            //float halfWidth = box.size.x * 0.5f;
+            //float halfHeight = box.size.y * 0.5f;
 
-                circleOrigin = new Vector2(x, y);
+            //Vector2 box_tl = new Vector2((-halfWidth * cos) + (halfHeight * -sin), (-halfWidth * sin) + (halfHeight * cos)) + box.Position2D;
+            //Vector2 box_tr = new Vector2((halfWidth * cos) + (halfHeight * -sin), (halfWidth * sin) + (halfHeight * cos)) + box.Position2D;
+            //Vector2 box_bl = new Vector2((-halfWidth * cos) + (-halfHeight * -sin), (-halfWidth * sin) + (-halfHeight * cos)) + box.Position2D;
+            //Vector2 box_br = new Vector2((halfWidth * cos) + (-halfHeight * -sin), (halfWidth * sin) + (-halfHeight * cos)) + box.Position2D;
 
-                float halfWidth = size.x * 0.5f;
-                float halfHeight = size.y * 0.5f;
+            //if (CollisionDetect2DDot(box_tl)) return true;
+            //if (CollisionDetect2DDot(box_tr)) return true;
+            //if (CollisionDetect2DDot(box_bl)) return true;
+            //if (CollisionDetect2DDot(box_br)) return true;
 
-                Vector2 tl = new Vector2(-halfWidth, halfHeight);
-                Vector2 tr = new Vector2(halfWidth, halfHeight);
-                Vector2 bl = new Vector2(-halfWidth, -halfHeight);
-                Vector2 br = new Vector2(halfWidth, -halfHeight);
+            //rad = rotate.y * Mathf.Deg2Rad;
+            //cos = Mathf.Cos(rad);
+            //sin = Mathf.Sin(rad);
 
-                if ((circleOrigin - tl).magnitude <= circle_radius) return true;
-                if ((circleOrigin - tr).magnitude <= circle_radius) return true;
-                if ((circleOrigin - bl).magnitude <= circle_radius) return true;
-                if ((circleOrigin - br).magnitude <= circle_radius) return true;
-            }
+            //halfWidth = size.x * 0.5f;
+            //halfHeight = size.y * 0.5f;
+
+            //box_tl = new Vector2((-halfWidth * cos) + (halfHeight * -sin), (-halfWidth * sin) + (halfHeight * cos)) + box.Position2D;
+            //box_tr = new Vector2((halfWidth * cos) + (halfHeight * -sin), (halfWidth * sin) + (halfHeight * cos)) + box.Position2D;
+            //box_bl = new Vector2((-halfWidth * cos) + (-halfHeight * -sin), (-halfWidth * sin) + (-halfHeight * cos)) + box.Position2D;
+            //box_br = new Vector2((halfWidth * cos) + (-halfHeight * -sin), (halfWidth * sin) + (-halfHeight * cos)) + box.Position2D;
+
+            //if (box.CollisionDetect2DDot(box_tl)) return true;
+            //if (box.CollisionDetect2DDot(box_tr)) return true;
+            //if (box.CollisionDetect2DDot(box_bl)) return true;
+            //if (box.CollisionDetect2DDot(box_br)) return true;
+
             return false;
+        }
+
+        public bool CollisionDetect2DCircle(Circle circle)
+        {
+            Vector2 circleOrigin = circle.Position2D - Position2D;
+
+            float rad = rotate.y * Mathf.Deg2Rad;
+            float cos = Mathf.Cos(rad);
+            float sin = Mathf.Sin(rad);
+
+            float circle_distance_x = Mathf.Abs((circleOrigin.x * cos) + (circleOrigin.y * -sin));
+            float circle_distance_y = Mathf.Abs((circleOrigin.x * sin) + (circleOrigin.y * cos));
+
+            if (circle_distance_x > (size.x * 0.5f) + circle.radius) return false;
+            if (circle_distance_y > (size.y * 0.5f) + circle.radius) return false;
+
+            if (circle_distance_x <= (size.x * 0.5f)) return true;
+            if (circle_distance_y <= (size.y * 0.5f)) return true;
+
+            float corner_distance_sq = (circle_distance_x - (size.x * 0.5f)) * (circle_distance_x - (size.x * 0.5f))
+                + (circle_distance_y - (size.y * 0.5f)) * (circle_distance_y - (size.y * 0.5f));
+
+            return corner_distance_sq <= (circle.radius * circle.radius);
         }
 
         public void DrawGizmo()

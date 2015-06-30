@@ -9,6 +9,9 @@ namespace ZKit
         public float radius;
         public Vector3 up;
 
+        public Vector2 Position2D { get { return new Vector2(position.x, position.z); } }
+        public Vector3 Position { get { return position; } }
+
         public Circle()
         {
             position = Vector3.zero;
@@ -66,51 +69,7 @@ namespace ZKit
 
         public bool CollisionDetect2DBox(Box box)
         {
-            return box.CollisionDetect2DDot(new Vector2(position.x, position.z));
-            //return CollisionDetect2DBox(new Vector2(box.position.x, box.position.z), box.size, box.rotate.y);
-        }
-
-        public bool CollisionDetect2DBox(Vector2 box_position, Vector2 box_size, float box_rotateY)
-        {
-            Vector2 boxOrigin = box_position - new Vector2(position.x, position.z);
-            float boxRadius = Mathf.Sqrt((box_size.x * box_size.x) + (box_size.y * box_size.y)) * 0.5f;
-            if (boxOrigin.magnitude - boxRadius <= radius)
-            {
-                float halfWidth = box_size.x * 0.5f;
-                float halfHeight = box_size.y * 0.5f;
-
-                Vector2 tl = new Vector2(-halfWidth, halfHeight);
-                Vector2 tr = new Vector2(halfWidth, halfHeight);
-                Vector2 bl = new Vector2(-halfWidth, -halfHeight);
-                Vector2 br = new Vector2(halfWidth, -halfHeight);
-
-                float rad = - box_rotateY * Mathf.Deg2Rad;
-                float cos = Mathf.Cos(rad);
-                float sin = Mathf.Sin(rad);
-
-                Vector2 ntl = new Vector2();
-                Vector2 ntr = new Vector2();
-                Vector2 nbl = new Vector2();
-                Vector2 nbr = new Vector2();
-
-                ntl.x = (tl.x * cos) + (tl.y * -sin);
-                ntl.y = (tl.x * sin) + (tl.y * cos);
-
-                ntr.x = (tr.x * cos) + (tr.y * -sin);
-                ntr.y = (tr.x * sin) + (tr.y * cos);
-
-                nbl.x = (bl.x * cos) + (bl.y * -sin);
-                nbl.y = (bl.x * sin) + (bl.y * cos);
-
-                nbr.x = (br.x * cos) + (br.y * -sin);
-                nbr.y = (br.x * sin) + (br.y * cos);
-
-                if ((boxOrigin + ntl).magnitude <= radius) return true;
-                if ((boxOrigin + ntr).magnitude <= radius) return true;
-                if ((boxOrigin + nbl).magnitude <= radius) return true;
-                if ((boxOrigin + nbr).magnitude <= radius) return true;
-            }
-            return false;
+            return box.CollisionDetect2DCircle(this);
         }
 
         public void DrawGizmo()

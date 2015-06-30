@@ -66,45 +66,11 @@ namespace ZKit
 
         public bool CollisionDetect2DBox(Box box)
         {
-            return CollisionDetect2DBox(box.position, box.size, box.rotate.y);
-        }
-
-        public bool CollisionDetect2DBox(Vector2 box_position, Vector2 box_size, float box_rotateY)
-        {
-            Vector2 boxOrigin = box_position - new Vector2(position.x, position.z);
-            float boxRadius = Mathf.Sqrt((box_size.x * box_size.x) + (box_size.y * box_size.y)) * 0.5f;
-            if (boxOrigin.magnitude - boxRadius <= radius)
-            {
-                float rad = box_rotateY * Mathf.Deg2Rad;
-                float cos = Mathf.Cos(rad);
-                float sin = Mathf.Sin(rad);
-
-                float halfWidth = box_size.x * 0.5f;
-                float halfHeight = box_size.y * 0.5f;
-
-                Vector2 tl = new Vector2(-halfWidth, halfHeight);
-                Vector2 tr = new Vector2(halfWidth, halfHeight);
-                Vector2 bl = new Vector2(-halfWidth, -halfHeight);
-                Vector2 br = new Vector2(halfWidth, -halfHeight);
-
-                tl.x = (tl.x * cos) + (tl.y * -sin);
-                tl.y = (tl.x * sin) + (tl.y * cos);
-
-                tr.x = (tr.x * cos) + (tr.y * -sin);
-                tr.y = (tr.x * sin) + (tr.y * cos);
-
-                bl.x = (bl.x * cos) + (bl.y * -sin);
-                bl.y = (bl.x * sin) + (bl.y * cos);
-
-                br.x = (br.x * cos) + (br.y * -sin);
-                br.y = (br.x * sin) + (br.y * cos);
-
-                if ((boxOrigin + tl).magnitude <= radius) return true;
-                if ((boxOrigin + tr).magnitude <= radius) return true;
-                if ((boxOrigin + bl).magnitude <= radius) return true;
-                if ((boxOrigin + br).magnitude <= radius) return true;
-            }
-            return false;
+            Circle circle = new Circle();
+            circle.position = position;
+            circle.radius = radius;
+            circle.up = Vector3.up;
+            return box.CollisionDetect2DCircle(circle);
         }
 
         public void DrawGizmo()
