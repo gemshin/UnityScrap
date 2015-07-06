@@ -189,7 +189,7 @@ public class BoundCheckWindow : EditorWindow
             case BoundType.Box:
                 _box.position = EditorGUILayout.Vector3Field("position", _box.position);
                 _box.size = EditorGUILayout.Vector2Field("Scale", _box.size);
-                _box.rotate.y = EditorGUILayout.Slider("rotate Y angle", _box.rotate.y, 0f, 360f);
+                _box.rotate_y = EditorGUILayout.Slider("rotate Y angle", _box.rotate_y, 0f, 360f);
                 break;
             case BoundType.Cube:
                 _cube.position = EditorGUILayout.Vector3Field("position", _cube.position);
@@ -251,7 +251,7 @@ public class BoundCheckWindow : EditorWindow
             EditorGUILayout.EndHorizontal();
             _testBox.position = _currentClickedPos;
             _testBox.size = EditorGUILayout.Vector2Field("Box Size", _testBox.size);
-            _testBox.rotate.y = EditorGUILayout.Slider("Box Rotate Y angle", _testBox.rotate.y, 0f, 360f);
+            _testBox.rotate_y = EditorGUILayout.Slider("Box Rotate Y angle", _testBox.rotate_y, 0f, 360f);
         }
         EditorGUILayout.EndVertical();
 
@@ -262,17 +262,17 @@ public class BoundCheckWindow : EditorWindow
                 switch(_testMode)
                 {
                     case TestMode.Dot2D:
-                        EditorGUILayout.LabelField("In ?", (isIn = _box.CollisionDetect2DDot(new Vector2(_currentClickedPos.x, _currentClickedPos.z))) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = MathUtil.CollisionDetect2DDot(_box, new Vector2(_currentClickedPos.x, _currentClickedPos.z))) ? "Yes" : "No");
                         break;
                     case TestMode.Line2D:
-                        EditorGUILayout.LabelField("In ?", (isIn = _box.CollisionDetect2DLine(new Vector2(_currentClickedPos.x, _currentClickedPos.z), new Vector2(_prevClickedPos.x, _prevClickedPos.z))) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = MathUtil.CollisionDetect2DLine(_box, new Vector2(_currentClickedPos.x, _currentClickedPos.z), new Vector2(_prevClickedPos.x, _prevClickedPos.z))) ? "Yes" : "No");
                         break;
                     case TestMode.Ray2D:
                         Vector2 dir = new Vector2(_prevClickedPos.x, _prevClickedPos.z) - new Vector2(_currentClickedPos.x, _currentClickedPos.z);
-                        EditorGUILayout.LabelField("In ?", (isIn = _box.CollisionDetect2DRay(new Vector2(_currentClickedPos.x, _currentClickedPos.z), dir)) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = MathUtil.CollisionDetect2DRay(_box, new Vector2(_currentClickedPos.x, _currentClickedPos.z), dir)) ? "Yes" : "No");
                         break;
                     case TestMode.Box2D:
-                        EditorGUILayout.LabelField("In ?", (isIn = _box.CollisionDetect2DBox(_testBox)) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = MathUtil.CollisionDetect2DBox(_box, _testBox)) ? "Yes" : "No");
                         break;
                 }
                 break;
@@ -280,13 +280,14 @@ public class BoundCheckWindow : EditorWindow
                 switch (_testMode)
                 {
                     case TestMode.Dot2D:
-                        EditorGUILayout.LabelField("In ?", (isIn = _cube.CollisionDetect2DDot(new Vector2(_currentClickedPos.x, _currentClickedPos.z))) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = MathUtil.CollisionDetect2DDot(_cube.Get2Dbox(), new Vector2(_currentClickedPos.x, _currentClickedPos.z))) ? "Yes" : "No");
                         break;
                     case TestMode.Line2D:
-                        EditorGUILayout.LabelField("In ?", (isIn = _cube.CollisionDetect2DLine(new Vector2(_currentClickedPos.x, _currentClickedPos.z), new Vector2(_prevClickedPos.x, _prevClickedPos.z))) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = MathUtil.CollisionDetect2DLine(_cube.Get2Dbox(), new Vector2(_currentClickedPos.x, _currentClickedPos.z), new Vector2(_prevClickedPos.x, _prevClickedPos.z))) ? "Yes" : "No");
                         break;
                     case TestMode.Ray2D:
-                        //EditorGUILayout.LabelField("In ?", (isIn = _cube.CollisionDetect2DRay(new Vector2(_currentClickedPos.x, _currentClickedPos.z), new Vector2(_prevClickedPos.x, _prevClickedPos.z))) ? "Yes" : "No");
+                        Vector2 dir = new Vector2(_prevClickedPos.x, _prevClickedPos.z) - new Vector2(_currentClickedPos.x, _currentClickedPos.z);
+                        EditorGUILayout.LabelField("In ?", (isIn = MathUtil.CollisionDetect2DRay(_cube.Get2Dbox(), new Vector2(_currentClickedPos.x, _currentClickedPos.z), dir)) ? "Yes" : "No");
                         break;
                     case TestMode.Box2D:
                         break;
@@ -296,17 +297,17 @@ public class BoundCheckWindow : EditorWindow
                 switch (_testMode)
                 {
                     case TestMode.Dot2D:
-                        EditorGUILayout.LabelField("In ?", (isIn = _circle.CollisionDetect2DDot(new Vector2(_currentClickedPos.x, _currentClickedPos.z))) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = MathUtil.CollisionDetect2DDot(_circle, new Vector2(_currentClickedPos.x, _currentClickedPos.z))) ? "Yes" : "No");
                         break;
                     case TestMode.Line2D:
-                        EditorGUILayout.LabelField("In ?", (isIn = _circle.CollisionDetect2DLine(new Vector2(_currentClickedPos.x, _currentClickedPos.z), new Vector2(_prevClickedPos.x, _prevClickedPos.z))) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = MathUtil.CollisionDetect2DLine(_circle, new Vector2(_currentClickedPos.x, _currentClickedPos.z), new Vector2(_prevClickedPos.x, _prevClickedPos.z))) ? "Yes" : "No");
                         break;
                     case TestMode.Ray2D:
                         Vector2 dir = new Vector2(_prevClickedPos.x, _prevClickedPos.z) - new Vector2(_currentClickedPos.x, _currentClickedPos.z);
-                        EditorGUILayout.LabelField("In ?", (isIn = _circle.CollisionDetect2DRay(new Vector2(_currentClickedPos.x, _currentClickedPos.z), dir)) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = MathUtil.CollisionDetect2DRay(_circle, new Vector2(_currentClickedPos.x, _currentClickedPos.z), dir)) ? "Yes" : "No");
                         break;
                     case TestMode.Box2D:
-                        EditorGUILayout.LabelField("In ?", (isIn = _circle.CollisionDetect2DBox(_testBox)) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = MathUtil.CollisionDetect2DCircle(_testBox, _circle)) ? "Yes" : "No");
                         break;
                 }
                 break;
@@ -314,17 +315,17 @@ public class BoundCheckWindow : EditorWindow
                 switch (_testMode)
                 {
                     case TestMode.Dot2D:
-                        EditorGUILayout.LabelField("In ?", (isIn = _capsule.CollisionDetect2DDot(new Vector2(_currentClickedPos.x, _currentClickedPos.z))) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = MathUtil.CollisionDetect2DDot(_capsule.GetCircle(), new Vector2(_currentClickedPos.x, _currentClickedPos.z))) ? "Yes" : "No");
                         break;
                     case TestMode.Line2D:
-                        EditorGUILayout.LabelField("In ?", (isIn = _capsule.CollisionDetect2DLine(new Vector2(_currentClickedPos.x, _currentClickedPos.z), new Vector2(_prevClickedPos.x, _prevClickedPos.z))) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = MathUtil.CollisionDetect2DLine(_capsule.GetCircle(), new Vector2(_currentClickedPos.x, _currentClickedPos.z), new Vector2(_prevClickedPos.x, _prevClickedPos.z))) ? "Yes" : "No");
                         break;
                     case TestMode.Ray2D:
                         Vector2 dir = new Vector2(_prevClickedPos.x, _prevClickedPos.z) - new Vector2(_currentClickedPos.x, _currentClickedPos.z);
-                        EditorGUILayout.LabelField("In ?", (isIn = _capsule.CollisionDetect2DRay(new Vector2(_currentClickedPos.x, _currentClickedPos.z), dir)) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = MathUtil.CollisionDetect2DRay(_capsule.GetCircle(), new Vector2(_currentClickedPos.x, _currentClickedPos.z), dir)) ? "Yes" : "No");
                         break;
                     case TestMode.Box2D:
-                        EditorGUILayout.LabelField("In ?", (isIn = _capsule.CollisionDetect2DBox(_testBox)) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = MathUtil.CollisionDetect2DCircle(_testBox, _capsule.GetCircle())) ? "Yes" : "No");
                         break;
                 }
                 break;

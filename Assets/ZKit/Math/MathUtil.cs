@@ -5,9 +5,9 @@ using UnityEngine;
 
 namespace ZKit
 {
-    public class MathUtil
+    public static class MathUtil
     {
-        static public string DecimalToHex32(int num)
+        public static string DecimalToHex32(int num)
         {
             return num.ToString("X8");
         }
@@ -18,7 +18,7 @@ namespace ZKit
 // ---+---
 //  4/|\7
 //  /5|6\
-        static private Point SwitchToOctantZeroFrom(int octant, Point p)
+        private static Point SwitchToOctantZeroFrom(int octant, Point p)
         {
             switch (octant)
             {
@@ -41,7 +41,7 @@ namespace ZKit
             return p;
         }
 
-        static private UnityEngine.Vector3 SwitchToOctantZeroFrom(int octant, UnityEngine.Vector3 p)
+        private static UnityEngine.Vector3 SwitchToOctantZeroFrom(int octant, UnityEngine.Vector3 p)
         {
             switch (octant)
             {
@@ -124,7 +124,7 @@ namespace ZKit
             return ret;
         }
 
-        static public List<Point> BresenhamLineEx(Point p1, Point p2)
+        public static List<Point> BresenhamLineEx(Point p1, Point p2)
         {
             List<Point> ret = new List<Point>();
             Point dp = p2 - p1;
@@ -190,7 +190,7 @@ namespace ZKit
             return ret;
         }
 
-        static public List<UnityEngine.Vector3> SupercoverLine(UnityEngine.Vector3 p1, UnityEngine.Vector3 p2)
+        public static List<UnityEngine.Vector3> SupercoverLine(UnityEngine.Vector3 p1, UnityEngine.Vector3 p2)
         {
             List<UnityEngine.Vector3> ret = new List<UnityEngine.Vector3>();
             UnityEngine.Vector3 dp = p2 - p1;
@@ -256,7 +256,7 @@ namespace ZKit
             return ret;
         }
 
-        static public bool Intersects(Vector2 a1, Vector2 a2, Vector2 b1, Vector2 b2, out Vector2 intersection)
+        public static bool Intersects(Vector2 a1, Vector2 a2, Vector2 b1, Vector2 b2, out Vector2 intersection)
         {
             intersection = Vector2.zero;
 
@@ -280,6 +280,148 @@ namespace ZKit
             intersection = a1 + t * a;
 
             return true;
+        }
+
+        public static bool CollisionDetect2DDot(Box box, Vector2 dot_position)
+        {
+            Vector2 boxSpaceDot = dot_position - box.Position2D;
+            float boxRadius = Mathf.Sqrt((box.size.x * box.size.x) + (box.size.y * box.size.y)) * 0.5f;
+            if (boxSpaceDot.magnitude <= boxRadius)
+            {
+                float rad = box.rotate_y * Mathf.Deg2Rad;
+                float cos = Mathf.Cos(rad);
+                float sin = Mathf.Sin(rad);
+
+                float x = (boxSpaceDot.x * cos) + (boxSpaceDot.y * -sin);
+                float y = (boxSpaceDot.x * sin) + (boxSpaceDot.y * cos);
+
+                boxSpaceDot = new Vector2(x, y);
+
+                if ((box.size.x * 0.5f) >= x && (box.size.x * -0.5f) <= x && (box.size.y * 0.5f) >= y && (box.size.y * -0.5f) <= y)
+                    return true;
+            }
+            return false;
+        }
+
+        public static bool CollisionDetect2DDot(Circle circle, Vector2 dot_position)
+        {
+            Vector2 circleSpaceDot = dot_position - circle.position2D;
+            if (circleSpaceDot.magnitude <= circle.radius)
+                return true;
+            return false;
+        }
+
+        public static bool CollisionDetect2DLine(Box box, Vector2 lineStart_position, Vector2 lineEnd_position)
+        {
+            Vector2 boxSpaceStart = lineStart_position - box.Position2D;
+            Vector2 boxSpaceEnd = lineEnd_position - box.Position2D;
+
+            float rad = box.rotate_y * Mathf.Deg2Rad;
+            float cos = Mathf.Cos(rad);
+            float sin = Mathf.Sin(rad);
+
+            Vector2 originStart = new Vector2();
+            Vector2 originEnd = new Vector2();
+            originStart.x = (boxSpaceStart.x * cos) + (boxSpaceStart.y * -sin);
+            originStart.y = (boxSpaceStart.x * sin) + (boxSpaceStart.y * cos);
+            originEnd.x = (boxSpaceEnd.x * cos) + (boxSpaceEnd.y * -sin);
+            originEnd.y = (boxSpaceEnd.x * sin) + (boxSpaceEnd.y * cos);
+
+            float halfWidth = box.size.x * 0.5f;
+            float halfHeight = box.size.y * 0.5f;
+
+            Vector2 tl = new Vector2(-halfWidth, halfHeight);
+            Vector2 tr = new Vector2(halfWidth, halfHeight);
+            Vector2 bl = new Vector2(-halfWidth, -halfHeight);
+            Vector2 br = new Vector2(halfWidth, -halfHeight);
+
+            Vector2 pResult;
+            if (MathUtil.Intersects(originStart, originEnd, tl, bl, out pResult))
+                return true;
+            if (MathUtil.Intersects(originStart, originEnd, tl, tr, out pResult))
+                return true;
+            if (MathUtil.Intersects(originStart, originEnd, tr, br, out pResult))
+                return true;
+            if (MathUtil.Intersects(originStart, originEnd, bl, br, out pResult))
+                return true;
+
+            return false;
+        }
+
+        public static bool CollisionDetect2DLine(Circle circle, Vector2 lineStart_position, Vector2 lineEnd_position)
+        {
+            Vector2 circleSpaceStart = lineStart_position - circle.position2D;
+            Vector2 circleSpaceEnd = lineEnd_position - circle.position2D;
+
+            if (circleSpaceStart.magnitude <= circle.radius) return true;
+            if (circleSpaceEnd.magnitude <= circle.radius) return true;
+
+            if (Vector2.Dot(circleSpaceStart, circleSpaceEnd - circleSpaceStart) >= 0f) return false;
+            if (Vector2.Dot(circleSpaceEnd, circleSpaceEnd - circleSpaceStart) <= 0f) return false;
+
+            float dr = (circleSpaceEnd - circleSpaceStart).magnitude;
+            float D = circleSpaceStart.x * circleSpaceEnd.y - circleSpaceEnd.x * circleSpaceStart.y;
+            float di = (circle.radius * circle.radius) * (dr * dr) - (D * D);
+
+            if (di < 0) return false;
+            return true;
+        }
+
+        public static bool CollisionDetect2DRay(Box box, Vector2 lineStart_position, Vector2 line_direction)
+        {
+            return CollisionDetect2DLine(box, lineStart_position, lineStart_position + (line_direction * 1000.0f));
+        }
+
+        public static bool CollisionDetect2DRay(Circle circle, Vector2 lineStart_position, Vector2 line_direction)
+        {
+            Vector2 circleSpaceStart = lineStart_position - circle.position2D;
+            Vector2 circleSpaceEnd = (lineStart_position + line_direction.normalized) - circle.position2D;
+
+            if (circleSpaceStart.magnitude <= circle.radius) return true;
+            if (Vector2.Dot(circle.position2D - circleSpaceStart, circleSpaceStart - circleSpaceEnd) >= 0f) return false;
+            float D = circleSpaceStart.x * circleSpaceEnd.y - circleSpaceEnd.x * circleSpaceStart.y;
+            float di = (circle.radius * circle.radius) - (D * D);
+
+            if (di < 0) return false;
+            return true;
+        }
+
+        public static bool CollisionDetect2DBox(Box box, Box box_a)
+        {
+            return false;
+        }
+
+        public static bool CollisionDetect2DBox(Circle circle, Box box)
+        {
+            return CollisionDetect2DCircle(box, circle);
+        }
+
+        public static bool CollisionDetect2DCircle(Box box, Circle circle)
+        {
+            Vector2 boxSpaceCircle = circle.position2D - box.Position2D;
+
+            float rad = box.rotate_y * Mathf.Deg2Rad;
+            float cos = Mathf.Cos(rad);
+            float sin = Mathf.Sin(rad);
+
+            float circle_distance_x = Mathf.Abs((boxSpaceCircle.x * cos) + (boxSpaceCircle.y * -sin));
+            float circle_distance_y = Mathf.Abs((boxSpaceCircle.x * sin) + (boxSpaceCircle.y * cos));
+
+            if (circle_distance_x > (box.size.x * 0.5f) + circle.radius) return false;
+            if (circle_distance_y > (box.size.y * 0.5f) + circle.radius) return false;
+
+            if (circle_distance_x <= (box.size.x * 0.5f)) return true;
+            if (circle_distance_y <= (box.size.y * 0.5f)) return true;
+
+            float corner_distance_sq = (circle_distance_x - (box.size.x * 0.5f)) * (circle_distance_x - (box.size.x * 0.5f))
+                + (circle_distance_y - (box.size.y * 0.5f)) * (circle_distance_y - (box.size.y * 0.5f));
+
+            return corner_distance_sq <= (circle.radius * circle.radius);
+        }
+
+        public static bool CollisionDetect2DCircle(Circle circle, Circle circle_a)
+        {
+            return false;
         }
     }
 }
