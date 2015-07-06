@@ -421,7 +421,7 @@ namespace ZKit
 
         public static bool CollisionDetect2DCircle(Circle circle, Circle circle_a)
         {
-            return false;
+            return (circle.position2D - circle_a.position2D).magnitude <= circle.radius + circle_a.radius;
         }
     }
 }

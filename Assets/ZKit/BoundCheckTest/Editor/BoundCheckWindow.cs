@@ -19,6 +19,7 @@ public class BoundCheckWindow : EditorWindow
         Line2D,
         Ray2D,
         Box2D,
+        Circle2D,
         None
     }
     private static BoundType _boundType = BoundType.Box;
@@ -32,6 +33,10 @@ public class BoundCheckWindow : EditorWindow
 
     #region testBox
     private static Box _testBox = new Box();
+    #endregion
+
+    #region testCircle
+    private static Circle _testCircle = new Circle(); 
     #endregion
 
     private static Color _lineColor = Color.red;
@@ -176,6 +181,11 @@ public class BoundCheckWindow : EditorWindow
             Gizmos.color = _lineColor;
             _testBox.DrawGizmo();
         }
+        else if (_testMode == TestMode.Circle2D)
+        {
+            Gizmos.color = _lineColor;
+            _testCircle.DrawGizmo();
+        }
     }
 
     void OnGUI()
@@ -253,6 +263,19 @@ public class BoundCheckWindow : EditorWindow
             _testBox.size = EditorGUILayout.Vector2Field("Box Size", _testBox.size);
             _testBox.rotate_y = EditorGUILayout.Slider("Box Rotate Y angle", _testBox.rotate_y, 0f, 360f);
         }
+        else if (_testMode == TestMode.Circle2D)
+        {
+            EditorGUILayout.BeginHorizontal();
+            _currentClickedPos = EditorGUILayout.Vector3Field("Circle Pos", _currentClickedPos);
+            GUIStyle gs = new GUIStyle("button");
+            if (_clickMode_cur) gs.normal.textColor = Color.green;
+            else gs.normal.textColor = Color.red;
+            if (GUILayout.Button("Edit", gs, GUILayout.Height(32f)))
+                _clickMode_cur = !_clickMode_cur;
+            EditorGUILayout.EndHorizontal();
+            _testCircle.position = _currentClickedPos;
+            _testCircle.radius = EditorGUILayout.FloatField("Circle Size", _testCircle.radius);
+        }
         EditorGUILayout.EndVertical();
 
         bool isIn = false;
@@ -274,6 +297,9 @@ public class BoundCheckWindow : EditorWindow
                     case TestMode.Box2D:
                         EditorGUILayout.LabelField("In ?", (isIn = MathUtil.CollisionDetect2DBox(_box, _testBox)) ? "Yes" : "No");
                         break;
+                    case TestMode.Circle2D:
+                        EditorGUILayout.LabelField("In ?", (isIn = MathUtil.CollisionDetect2DCircle(_box, _testCircle)) ? "Yes" : "No");
+                        break;
                 }
                 break;
             case BoundType.Cube:
@@ -290,6 +316,10 @@ public class BoundCheckWindow : EditorWindow
                         EditorGUILayout.LabelField("In ?", (isIn = MathUtil.CollisionDetect2DRay(_cube.Get2Dbox(), new Vector2(_currentClickedPos.x, _currentClickedPos.z), dir)) ? "Yes" : "No");
                         break;
                     case TestMode.Box2D:
+                        EditorGUILayout.LabelField("In ?", (isIn = MathUtil.CollisionDetect2DBox(_cube.Get2Dbox(), _testBox)) ? "Yes" : "No");
+                        break;
+                    case TestMode.Circle2D:
+                        EditorGUILayout.LabelField("In ?", (isIn = MathUtil.CollisionDetect2DCircle(_cube.Get2Dbox(), _testCircle)) ? "Yes" : "No");
                         break;
                 }
                 break;
@@ -307,7 +337,10 @@ public class BoundCheckWindow : EditorWindow
                         EditorGUILayout.LabelField("In ?", (isIn = MathUtil.CollisionDetect2DRay(_circle, new Vector2(_currentClickedPos.x, _currentClickedPos.z), dir)) ? "Yes" : "No");
                         break;
                     case TestMode.Box2D:
-                        EditorGUILayout.LabelField("In ?", (isIn = MathUtil.CollisionDetect2DCircle(_testBox, _circle)) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = MathUtil.CollisionDetect2DBox(_circle, _testBox)) ? "Yes" : "No");
+                        break;
+                    case TestMode.Circle2D:
+                        EditorGUILayout.LabelField("In ?", (isIn = MathUtil.CollisionDetect2DCircle(_circle, _testCircle)) ? "Yes" : "No");
                         break;
                 }
                 break;
@@ -325,7 +358,10 @@ public class BoundCheckWindow : EditorWindow
                         EditorGUILayout.LabelField("In ?", (isIn = MathUtil.CollisionDetect2DRay(_capsule.GetCircle(), new Vector2(_currentClickedPos.x, _currentClickedPos.z), dir)) ? "Yes" : "No");
                         break;
                     case TestMode.Box2D:
-                        EditorGUILayout.LabelField("In ?", (isIn = MathUtil.CollisionDetect2DCircle(_testBox, _capsule.GetCircle())) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = MathUtil.CollisionDetect2DBox(_capsule.GetCircle(), _testBox)) ? "Yes" : "No");
+                        break;
+                    case TestMode.Circle2D:
+                        EditorGUILayout.LabelField("In ?", (isIn = MathUtil.CollisionDetect2DCircle(_capsule.GetCircle(), _testCircle)) ? "Yes" : "No");
                         break;
                 }
                 break;
