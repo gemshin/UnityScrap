@@ -19,6 +19,7 @@ public class BoundCheckWindow : EditorWindow
         Line2D,
         Ray2D,
         Box2D,
+        LerpBox2D,
         Circle2D,
         None
     }
@@ -31,12 +32,21 @@ public class BoundCheckWindow : EditorWindow
     private static bool _clickMode_cur = false;
     private static bool _clickMode_prev = false;
 
+    #region lerp
+    private static float _lerpTweenFactor = 0f;
+    private static float _lerpElapsedTime = 1f;
+    #endregion
+
+    #region lerpBox
+    private static Vector2 _lerpBoxSize = Vector2.one;
+    #endregion
+
     #region testBox
     private static Box _testBox = new Box();
     #endregion
 
     #region testCircle
-    private static Circle _testCircle = new Circle(); 
+    private static Circle _testCircle = new Circle();
     #endregion
 
     private static Color _lineColor = Color.red;
@@ -50,7 +60,7 @@ public class BoundCheckWindow : EditorWindow
     #endregion
 
     #region circle
-    private static Circle _circle = new Circle(); 
+    private static Circle _circle = new Circle();
     #endregion
 
     #region capsule
@@ -112,10 +122,13 @@ public class BoundCheckWindow : EditorWindow
             }
 
             EditorGUI.BeginChangeCheck();
-            if(_clickMode_cur)
+            if (_clickMode_cur)
+            {
                 _currentClickedPos = Handles.PositionHandle(_currentClickedPos, Quaternion.identity);
+                Handles.Label(_currentClickedPos + Vector3.back * 0.2f, "Pos A");
+            }
 
-            if (_testMode == TestMode.Line2D || _testMode == TestMode.Ray2D)
+            if (_testMode == TestMode.Line2D || _testMode == TestMode.Ray2D || _testMode == TestMode.LerpBox2D)
             {
                 Handles.color = _lineColor;
                 if (Handles.Button(_prevClickedPos, Quaternion.identity, 0.1f * HandleUtility.GetHandleSize(_prevClickedPos), 0.1f, Handles.DotCap))
@@ -124,8 +137,11 @@ public class BoundCheckWindow : EditorWindow
                     buttonClicked = true;
                     this.Repaint();
                 }
-                if(_clickMode_prev)
+                if (_clickMode_prev)
+                {
                     _prevClickedPos = Handles.PositionHandle(_prevClickedPos, Quaternion.identity);
+                    Handles.Label(_prevClickedPos + Vector3.back * 0.2f, "Pos B");
+                }
             }
 
             if (EditorGUI.EndChangeCheck())
@@ -166,25 +182,25 @@ public class BoundCheckWindow : EditorWindow
                 break;
         }
 
-        if (_testMode == TestMode.Line2D)
+        Gizmos.color = _lineColor;
+        switch (_testMode)
         {
-            Gizmos.color = _lineColor;
-            Gizmos.DrawLine(_prevClickedPos, _currentClickedPos);
-        }
-        else if (_testMode == TestMode.Ray2D)
-        {
-            Gizmos.color = _lineColor;
-            Gizmos.DrawRay(_currentClickedPos, (_prevClickedPos - _currentClickedPos) * 100);
-        }
-        else if (_testMode == TestMode.Box2D)
-        {
-            Gizmos.color = _lineColor;
-            _testBox.DrawGizmo();
-        }
-        else if (_testMode == TestMode.Circle2D)
-        {
-            Gizmos.color = _lineColor;
-            _testCircle.DrawGizmo();
+            case TestMode.Line2D:
+                Gizmos.DrawLine(_prevClickedPos, _currentClickedPos);
+                break;
+            case TestMode.Ray2D:
+                Gizmos.DrawRay(_currentClickedPos, (_prevClickedPos - _currentClickedPos) * 100);
+                break;
+            case TestMode.Box2D:
+                _testBox.DrawGizmo();
+                break;
+            case TestMode.LerpBox2D:
+                Gizmos.DrawLine(_prevClickedPos, _currentClickedPos);
+                _testBox.DrawGizmo();
+                break;
+            case TestMode.Circle2D:
+                _testCircle.DrawGizmo();
+                break;
         }
     }
 
@@ -227,13 +243,13 @@ public class BoundCheckWindow : EditorWindow
         EditorGUILayout.BeginVertical("box");
         _testMode = (TestMode)EditorGUILayout.EnumPopup("Test Mode", _testMode);
         //if (_testMode != TestMode.None)
-        if(_testMode == TestMode.Dot2D || _testMode == TestMode.Line2D || _testMode == TestMode.Ray2D )
+        if (_testMode == TestMode.Dot2D || _testMode == TestMode.Line2D || _testMode == TestMode.Ray2D)
         {
             EditorGUILayout.BeginHorizontal();
             _currentClickedPos = EditorGUILayout.Vector3Field("Clicked Pos A", _currentClickedPos);
             GUIStyle gs = new GUIStyle("button");
             if (_clickMode_cur) gs.normal.textColor = Color.green;
-            else                gs.normal.textColor = Color.red;
+            else gs.normal.textColor = Color.red;
             if (GUILayout.Button("Edit", gs, GUILayout.Height(32f)))
                 _clickMode_cur = !_clickMode_cur;
             EditorGUILayout.EndHorizontal();
@@ -242,26 +258,57 @@ public class BoundCheckWindow : EditorWindow
                 EditorGUILayout.BeginHorizontal();
                 _prevClickedPos = EditorGUILayout.Vector3Field("Clicked Pos B", _prevClickedPos);
                 if (_clickMode_prev) gs.normal.textColor = Color.green;
-                else                 gs.normal.textColor = Color.red;
+                else gs.normal.textColor = Color.red;
                 if (GUILayout.Button("Edit", gs, GUILayout.Height(32f)))
                     _clickMode_prev = !_clickMode_prev;
                 EditorGUILayout.EndHorizontal();
             }
-            
         }
         else if (_testMode == TestMode.Box2D)
         {
             EditorGUILayout.BeginHorizontal();
             _currentClickedPos = EditorGUILayout.Vector3Field("Box Pos", _currentClickedPos);
             GUIStyle gs = new GUIStyle("button");
-            if (_clickMode_cur)     gs.normal.textColor = Color.green;
-            else                    gs.normal.textColor = Color.red;
+            if (_clickMode_cur) gs.normal.textColor = Color.green;
+            else gs.normal.textColor = Color.red;
             if (GUILayout.Button("Edit", gs, GUILayout.Height(32f)))
                 _clickMode_cur = !_clickMode_cur;
             EditorGUILayout.EndHorizontal();
             _testBox.position = _currentClickedPos;
             _testBox.size = EditorGUILayout.Vector2Field("Box Size", _testBox.size);
             _testBox.rotate_y = EditorGUILayout.Slider("Box Rotate Y angle", _testBox.rotate_y, 0f, 360f);
+        }
+        else if (_testMode == TestMode.LerpBox2D)
+        {
+            EditorGUILayout.BeginHorizontal();
+            _currentClickedPos = EditorGUILayout.Vector3Field("Clicked Pos A", _currentClickedPos);
+            GUIStyle gs = new GUIStyle("button");
+            if (_clickMode_cur) gs.normal.textColor = Color.green;
+            else gs.normal.textColor = Color.red;
+            if (GUILayout.Button("Edit", gs, GUILayout.Height(32f)))
+                _clickMode_cur = !_clickMode_cur;
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.BeginHorizontal();
+            _prevClickedPos = EditorGUILayout.Vector3Field("Clicked Pos B", _prevClickedPos);
+            if (_clickMode_prev) gs.normal.textColor = Color.green;
+            else gs.normal.textColor = Color.red;
+            if (GUILayout.Button("Edit", gs, GUILayout.Height(32f)))
+                _clickMode_prev = !_clickMode_prev;
+            EditorGUILayout.EndHorizontal();
+
+            _lerpBoxSize = EditorGUILayout.Vector2Field("Box Size  (X:width  Y:height)", _lerpBoxSize);
+            _lerpTweenFactor = EditorGUILayout.Slider("Tween Factor", _lerpTweenFactor, 0f, 1f);
+            _lerpElapsedTime = EditorGUILayout.FloatField("Elapsed Time (millisec)", _lerpElapsedTime);
+
+            Vector3 direction = (_prevClickedPos - _currentClickedPos).normalized;
+            Vector3 lerpPosition = Vector3.Lerp(_currentClickedPos, _prevClickedPos, _lerpTweenFactor);
+            Vector3 newPosition = lerpPosition + (direction * (_lerpElapsedTime * 0.001f));
+            float lpLength = (lerpPosition - newPosition).magnitude;
+            _testBox.position = Vector3.Lerp(lerpPosition, newPosition, 0.5f);
+            _testBox.size.x = _lerpBoxSize.x;
+            _testBox.size.y = _lerpBoxSize.y > lpLength ? _lerpBoxSize.y : lpLength;
+            _testBox.rotate_y = Mathf.Acos(Vector3.Dot(direction, Vector3.forward)) * Mathf.Rad2Deg * (direction.x > 0f ? 1 : -1);
+            EditorGUILayout.LabelField("angle", _testBox.rotate_y.ToString());
         }
         else if (_testMode == TestMode.Circle2D)
         {
@@ -282,7 +329,7 @@ public class BoundCheckWindow : EditorWindow
         switch (_boundType)
         {
             case BoundType.Box:
-                switch(_testMode)
+                switch (_testMode)
                 {
                     case TestMode.Dot2D:
                         EditorGUILayout.LabelField("In ?", (isIn = MathUtil.CollisionDetect2DDot(_box, new Vector2(_currentClickedPos.x, _currentClickedPos.z))) ? "Yes" : "No");
@@ -295,6 +342,7 @@ public class BoundCheckWindow : EditorWindow
                         EditorGUILayout.LabelField("In ?", (isIn = MathUtil.CollisionDetect2DRay(_box, new Vector2(_currentClickedPos.x, _currentClickedPos.z), dir)) ? "Yes" : "No");
                         break;
                     case TestMode.Box2D:
+                    case TestMode.LerpBox2D:
                         EditorGUILayout.LabelField("In ?", (isIn = MathUtil.CollisionDetect2DBox(_box, _testBox)) ? "Yes" : "No");
                         break;
                     case TestMode.Circle2D:
@@ -316,6 +364,7 @@ public class BoundCheckWindow : EditorWindow
                         EditorGUILayout.LabelField("In ?", (isIn = MathUtil.CollisionDetect2DRay(_cube.Get2Dbox(), new Vector2(_currentClickedPos.x, _currentClickedPos.z), dir)) ? "Yes" : "No");
                         break;
                     case TestMode.Box2D:
+                    case TestMode.LerpBox2D:
                         EditorGUILayout.LabelField("In ?", (isIn = MathUtil.CollisionDetect2DBox(_cube.Get2Dbox(), _testBox)) ? "Yes" : "No");
                         break;
                     case TestMode.Circle2D:
@@ -337,6 +386,7 @@ public class BoundCheckWindow : EditorWindow
                         EditorGUILayout.LabelField("In ?", (isIn = MathUtil.CollisionDetect2DRay(_circle, new Vector2(_currentClickedPos.x, _currentClickedPos.z), dir)) ? "Yes" : "No");
                         break;
                     case TestMode.Box2D:
+                    case TestMode.LerpBox2D:
                         EditorGUILayout.LabelField("In ?", (isIn = MathUtil.CollisionDetect2DBox(_circle, _testBox)) ? "Yes" : "No");
                         break;
                     case TestMode.Circle2D:
@@ -358,6 +408,7 @@ public class BoundCheckWindow : EditorWindow
                         EditorGUILayout.LabelField("In ?", (isIn = MathUtil.CollisionDetect2DRay(_capsule.GetCircle(), new Vector2(_currentClickedPos.x, _currentClickedPos.z), dir)) ? "Yes" : "No");
                         break;
                     case TestMode.Box2D:
+                    case TestMode.LerpBox2D:
                         EditorGUILayout.LabelField("In ?", (isIn = MathUtil.CollisionDetect2DBox(_capsule.GetCircle(), _testBox)) ? "Yes" : "No");
                         break;
                     case TestMode.Circle2D:
