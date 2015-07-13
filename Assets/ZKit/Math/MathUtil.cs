@@ -281,6 +281,23 @@ namespace ZKit
 
             return true;
         }
+        public static bool GetTangentOnCircle(Vector2 circle_position, float circle_radius, Vector2 point, out Vector2 tangentA, out Vector2 tangentB)
+        {
+            Vector2 pointSpaceCircle = circle_position - point;
+            float len = pointSpaceCircle.magnitude;
+            float a = Mathf.Asin(circle_radius / len);
+            float b = Mathf.Atan2(pointSpaceCircle.y, pointSpaceCircle.x);
+
+            float t = b - a;
+            tangentA = circle_position + new Vector2(circle_radius * Mathf.Sin(t), circle_radius * -Mathf.Cos(t));
+
+            t = b + a;
+            tangentB = circle_position + new Vector2(circle_radius * -Mathf.Sin(t), circle_radius * Mathf.Cos(t));
+
+            tangentA = circle_position;
+
+            return true;
+        }
 
         public static bool CollisionDetect2DDot(Box box, Vector2 dot_position)
         {
@@ -302,7 +319,6 @@ namespace ZKit
             }
             return false;
         }
-
         public static bool CollisionDetect2DDot(Circle circle, Vector2 dot_position)
         {
             Vector2 circleSpaceDot = dot_position - circle.position2D;
@@ -347,7 +363,6 @@ namespace ZKit
 
             return false;
         }
-
         public static bool CollisionDetect2DLine(Circle circle, Vector2 lineStart_position, Vector2 lineEnd_position)
         {
             Vector2 circleSpaceStart = lineStart_position - circle.position2D;
@@ -371,7 +386,6 @@ namespace ZKit
         {
             return CollisionDetect2DLine(box, lineStart_position, lineStart_position + (line_direction * 1000.0f));
         }
-
         public static bool CollisionDetect2DRay(Circle circle, Vector2 lineStart_position, Vector2 line_direction)
         {
             Vector2 circleSpaceStart = lineStart_position - circle.position2D;
@@ -386,16 +400,31 @@ namespace ZKit
             return true;
         }
 
+        public static bool CollisionDetect2DBox(Vector2 dot_position, Box box)
+        {
+            return CollisionDetect2DDot(box, dot_position);
+        }
+        public static bool CollisionDetect2DBox(Vector2 lineStart_position, Vector2 lineEnd_position, Box box)
+        {
+            return CollisionDetect2DLine(box, lineStart_position, lineEnd_position);
+        }
         public static bool CollisionDetect2DBox(Box box, Box box_a)
         {
             return false;
-        }
-
+        } // 작업중.
         public static bool CollisionDetect2DBox(Circle circle, Box box)
         {
             return CollisionDetect2DCircle(box, circle);
         }
 
+        public static bool CollisionDetect2DCircle(Vector2 dot_position, Circle circle)
+        {
+            return CollisionDetect2DDot(circle, dot_position);
+        }
+        public static bool CollisionDetect2DCircle(Vector2 lineStart_position, Vector2 lineEnd_position, Circle circle)
+        {
+            return CollisionDetect2DLine(circle, lineStart_position, lineEnd_position);
+        }
         public static bool CollisionDetect2DCircle(Box box, Circle circle)
         {
             Vector2 boxSpaceCircle = circle.position2D - box.Position2D;
@@ -418,10 +447,100 @@ namespace ZKit
 
             return corner_distance_sq <= (circle.radius * circle.radius);
         }
-
         public static bool CollisionDetect2DCircle(Circle circle, Circle circle_a)
         {
             return (circle.position2D - circle_a.position2D).magnitude <= circle.radius + circle_a.radius;
+        }
+
+        public static bool CollisionDetect2DSector(Vector2 dot_position, Sector sector)
+        {
+            Vector2 sectorSpaceDot = dot_position - sector.position2D;
+            if (sectorSpaceDot.magnitude > sector.radius) return false;
+
+            float rad = sector.rotate_y * Mathf.Deg2Rad;
+            float cos = Mathf.Cos(rad);
+            float sin = Mathf.Sin(rad);
+            float x = (sectorSpaceDot.x * cos) + (sectorSpaceDot.y * -sin);
+            float y = (sectorSpaceDot.x * sin) + (sectorSpaceDot.y * cos);
+
+            sectorSpaceDot.x = x;
+            sectorSpaceDot.y = y;
+
+            rad = sector.angle * 0.5f * Mathf.Deg2Rad;
+
+            if (sector.angle < 180f)
+            {
+                if (((-Mathf.Sin(rad) * sectorSpaceDot.y - sectorSpaceDot.x * Mathf.Cos(rad)) <= 0f)
+                    && ((Mathf.Sin(rad) * sectorSpaceDot.y - sectorSpaceDot.x * Mathf.Cos(-rad)) >= 0f))
+                    return true;
+            }
+            else
+            {
+                if (((-Mathf.Sin(rad) * sectorSpaceDot.y - sectorSpaceDot.x * Mathf.Cos(rad)) <= 0f)
+                    || ((Mathf.Sin(rad) * sectorSpaceDot.y - sectorSpaceDot.x * Mathf.Cos(-rad)) >= 0f))
+                    return true;
+            }
+
+            return false;
+        }
+        public static bool CollisionDetect2DSector(Vector2 lineStart_position, Vector2 lineEnd_position, Sector sector)
+        {
+            //Vector2 sectorSpaceStart = lineStart_position - sector.position2D;
+            //Vector2 sectorSpaceEnd = lineEnd_position - sector.position2D;
+
+            //float rad = sector.rotate_y * Mathf.Deg2Rad;
+            //float cos = Mathf.Cos(rad);
+            //float sin = Mathf.Sin(rad);
+            //float x = (sectorSpaceStart.x * cos) + (sectorSpaceStart.y * -sin);
+            //float y = (sectorSpaceStart.x * sin) + (sectorSpaceStart.y * cos);
+            //sectorSpaceStart.x = x;
+            //sectorSpaceStart.y = y;
+            //x = (sectorSpaceEnd.x * cos) + (sectorSpaceEnd.y * -sin);
+            //y = (sectorSpaceEnd.x * sin) + (sectorSpaceEnd.y * cos);
+            //sectorSpaceEnd.x = x;
+            //sectorSpaceEnd.y = y;
+
+            //if (CollisionDetect2DSector(sectorSpaceStart, sector)) return true;
+            //if (CollisionDetect2DSector(sectorSpaceEnd, sector)) return true;
+
+            //rad = (-sector.rotate_y - sector.angle * 0.5f) * Mathf.Deg2Rad;
+            //Vector2 right = new Vector2(-Mathf.Sin(rad), Mathf.Cos(rad)) * sector.radius;
+            //rad = (-sector.rotate_y + sector.angle * 0.5f) * Mathf.Deg2Rad;
+            //Vector2 left = new Vector2(-Mathf.Sin(rad), Mathf.Cos(rad)) * sector.radius;
+            //Vector2 tmp;
+            //if (Intersects(sectorSpaceStart, sectorSpaceEnd, Vector2.zero, left, out tmp)) return true;
+            //if (Intersects(sectorSpaceStart, sectorSpaceEnd, Vector2.zero, right, out tmp)) return true;
+
+            return false;
+        }
+        public static bool CollisionDetect2DSector(Box box, Sector sector)
+        {
+            return false;
+        }
+        public static bool CollisionDetect2DSector(Circle circle, Sector sector)
+        {
+            Vector2 sectorSpaceCircle = circle.position2D - sector.position2D;
+            if (sectorSpaceCircle.magnitude - circle.radius > sector.radius) return false;
+
+            float rad = sector.rotate_y * Mathf.Deg2Rad;
+            float cos = Mathf.Cos(rad);
+            float sin = Mathf.Sin(rad);
+            float x = (sectorSpaceCircle.x * cos) + (sectorSpaceCircle.y * -sin);
+            float y = (sectorSpaceCircle.x * sin) + (sectorSpaceCircle.y * cos);
+
+            sectorSpaceCircle.x = x;
+            sectorSpaceCircle.y = y;
+
+            //float rad = (-rotate_y + angle * 0.5f) * Mathf.Deg2Rad;
+            //new Vector3(-Mathf.Sin(rad), 0f, Mathf.Cos(rad));
+            //sector.forward
+
+            //return false;
+            return true;
+        }
+        public static bool CollisionDetect2DSector(Sector sector, Sector sector_a)
+        {
+            return false;
         }
     }
 }

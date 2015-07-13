@@ -11,7 +11,8 @@ public class BoundCheckWindow : EditorWindow
         Box,
         Cube,
         Capsule,
-        Circle
+        Circle,
+        Sector
     }
     private enum TestMode
     {
@@ -21,6 +22,7 @@ public class BoundCheckWindow : EditorWindow
         Box2D,
         LerpBox2D,
         Circle2D,
+        Sector2D,
         None
     }
     private static BoundType _boundType = BoundType.Box;
@@ -39,6 +41,10 @@ public class BoundCheckWindow : EditorWindow
 
     #region lerpBox
     private static Vector2 _lerpBoxSize = Vector2.one;
+    #endregion
+
+    #region testArc
+    private static Sector _testSector = new Sector(); 
     #endregion
 
     #region testBox
@@ -61,6 +67,10 @@ public class BoundCheckWindow : EditorWindow
 
     #region circle
     private static Circle _circle = new Circle();
+    #endregion
+
+    #region sector
+    private static Sector _sector = new Sector(); 
     #endregion
 
     #region capsule
@@ -161,6 +171,9 @@ public class BoundCheckWindow : EditorWindow
         sceneView.Repaint();
     }
 
+    static Vector2 debLineA = new Vector2();
+    static Vector2 debLineB = new Vector2();
+
     [DrawGizmo(GizmoType.NotSelected | GizmoType.Selected)]
     static void DrawGizmo(GizmoDummy dummy, GizmoType gizmoType)
     {
@@ -180,6 +193,9 @@ public class BoundCheckWindow : EditorWindow
             case BoundType.Capsule:
                 _capsule.DrawGizmo();
                 break;
+            case BoundType.Sector:
+                _sector.DrawGizmo();
+                break;
         }
 
         Gizmos.color = _lineColor;
@@ -197,6 +213,11 @@ public class BoundCheckWindow : EditorWindow
             case TestMode.LerpBox2D:
                 Gizmos.DrawLine(_prevClickedPos, _currentClickedPos);
                 _testBox.DrawGizmo();
+                break;
+            case TestMode.Sector2D:
+                _testSector.DrawGizmo();
+                Gizmos.DrawLine(_currentClickedPos, debLineA);
+                Gizmos.DrawLine(_currentClickedPos, debLineB);
                 break;
             case TestMode.Circle2D:
                 _testCircle.DrawGizmo();
@@ -230,6 +251,12 @@ public class BoundCheckWindow : EditorWindow
                 _capsule.position = EditorGUILayout.Vector3Field("position", _capsule.position);
                 _capsule.radius = EditorGUILayout.FloatField("radius", _capsule.radius);
                 _capsule.height = EditorGUILayout.FloatField("height", _capsule.height);
+                break;
+            case BoundType.Sector:
+                _sector.position = EditorGUILayout.Vector3Field("position", _sector.position);
+                _sector.radius = EditorGUILayout.FloatField("radius", _sector.radius);
+                _sector.angle = EditorGUILayout.Slider("Sector Angle", _sector.angle, 0f, 360f);
+                _sector.rotate_y = EditorGUILayout.Slider("Rotate Y angle", _sector.rotate_y, 0f, 360f);
                 break;
         }
         if (EditorGUI.EndChangeCheck())
@@ -301,14 +328,37 @@ public class BoundCheckWindow : EditorWindow
             _lerpElapsedTime = EditorGUILayout.FloatField("Elapsed Time (millisec)", _lerpElapsedTime);
 
             Vector3 direction = (_prevClickedPos - _currentClickedPos).normalized;
-            Vector3 lerpPosition = Vector3.Lerp(_currentClickedPos, _prevClickedPos, _lerpTweenFactor);
-            Vector3 newPosition = lerpPosition + (direction * (_lerpElapsedTime * 0.001f));
-            float lpLength = (lerpPosition - newPosition).magnitude;
-            _testBox.position = Vector3.Lerp(lerpPosition, newPosition, 0.5f);
+
+            Vector3 end = _prevClickedPos - (direction * _lerpBoxSize.y * 0.5f);
+            Vector3 lerpPosition = Vector3.Lerp(_currentClickedPos + (direction * _lerpBoxSize.y * 0.5f), end, _lerpTweenFactor);
+
+            float totLength = (lerpPosition - end).magnitude;
+            float elapsedLength = (_lerpElapsedTime * 0.001f) > totLength ? totLength  : _lerpElapsedTime * 0.001f;
+            Vector3 elapsedPosition = lerpPosition + (direction * elapsedLength);
+            float lerpLength = elapsedLength + _lerpBoxSize.y;
+
+            _testBox.position = Vector3.Lerp(lerpPosition, elapsedPosition, 0.5f);
             _testBox.size.x = _lerpBoxSize.x;
-            _testBox.size.y = _lerpBoxSize.y > lpLength ? _lerpBoxSize.y : lpLength;
+            _testBox.size.y = _lerpBoxSize.y > lerpLength ? _lerpBoxSize.y : lerpLength;
             _testBox.rotate_y = Mathf.Acos(Vector3.Dot(direction, Vector3.forward)) * Mathf.Rad2Deg * (direction.x > 0f ? 1 : -1);
             EditorGUILayout.LabelField("angle", _testBox.rotate_y.ToString());
+        }
+        else if (_testMode == TestMode.Sector2D)
+        {
+            EditorGUILayout.BeginHorizontal();
+            _currentClickedPos = EditorGUILayout.Vector3Field("Sector Pos", _currentClickedPos);
+            GUIStyle gs = new GUIStyle("button");
+            if (_clickMode_cur) gs.normal.textColor = Color.green;
+            else gs.normal.textColor = Color.red;
+            if (GUILayout.Button("Edit", gs, GUILayout.Height(32f)))
+                _clickMode_cur = !_clickMode_cur;
+            EditorGUILayout.EndHorizontal();
+            _testSector.position = _currentClickedPos;
+            _testSector.radius = EditorGUILayout.FloatField("Sector Radius", _testSector.radius);
+            _testSector.angle = EditorGUILayout.Slider("Sector Angle", _testSector.angle, 0f, 360f);
+            _testSector.rotate_y = EditorGUILayout.Slider("Sector Rotate Y Angle", _testSector.rotate_y, 0f, 360f);
+
+            MathUtil.GetTangentOnCircle(_testCircle.position, _testCircle.radius, _currentClickedPos, out debLineA, out debLineB);
         }
         else if (_testMode == TestMode.Circle2D)
         {
@@ -413,6 +463,26 @@ public class BoundCheckWindow : EditorWindow
                         break;
                     case TestMode.Circle2D:
                         EditorGUILayout.LabelField("In ?", (isIn = MathUtil.CollisionDetect2DCircle(_capsule.GetCircle(), _testCircle)) ? "Yes" : "No");
+                        break;
+                }
+                break;
+            case BoundType.Sector:
+                switch (_testMode)
+                {
+                    case TestMode.Dot2D:
+                        EditorGUILayout.LabelField("In ?", (isIn = MathUtil.CollisionDetect2DSector(new Vector2(_currentClickedPos.x, _currentClickedPos.z), _sector)) ? "Yes" : "No");
+                        break;
+                    case TestMode.Line2D:
+                        EditorGUILayout.LabelField("In ?", (isIn = MathUtil.CollisionDetect2DSector(new Vector2(_currentClickedPos.x, _currentClickedPos.z), new Vector2(_prevClickedPos.x, _prevClickedPos.z), _sector)) ? "Yes" : "No");
+                        break;
+                    case TestMode.Box2D:
+                        EditorGUILayout.LabelField("In ?", (isIn = MathUtil.CollisionDetect2DSector(_testBox, _sector)) ? "Yes" : "No");
+                        break;
+                    case TestMode.Circle2D:
+                        EditorGUILayout.LabelField("In ?", (isIn = MathUtil.CollisionDetect2DSector(_testCircle, _sector)) ? "Yes" : "No");
+                        break;
+                    case TestMode.Sector2D:
+                        EditorGUILayout.LabelField("In ?", (isIn = MathUtil.CollisionDetect2DSector(_testSector, _sector)) ? "Yes" : "No");
                         break;
                 }
                 break;
