@@ -526,8 +526,35 @@ namespace ZKit
             sectorSpaceCircle.x = x;
             sectorSpaceCircle.y = y;
 
-            Vector2 tangentR, tangentL;
-            MathUtil.GetTangentOnCircle(circle.position2D, circle.radius, sector.position2D, out tangentR, out tangentL);
+            Vector2 sectorL, sectorR;
+
+            sectorL = new Vector2();
+            sectorL.x = -Mathf.Sin(sector.angle * 0.5f * Mathf.Deg2Rad) * sector.radius;
+            sectorL.y = Mathf.Cos(sector.angle * 0.5f * Mathf.Deg2Rad) * sector.radius;
+
+            sectorR = new Vector2();
+            sectorR.x = -Mathf.Sin(-sector.angle * 0.5f * Mathf.Deg2Rad) * sector.radius;
+            sectorR.y = Mathf.Cos(-sector.angle * 0.5f * Mathf.Deg2Rad) * sector.radius;
+
+            Vector2 dir = sectorSpaceCircle - sector.position2D;
+
+            if ((dir.x * sectorR.y - dir.y * sectorR.x) > 0f)
+            {
+                if (CollisionDetect2DCircle(Vector2.zero, sectorR, circle)) return true;
+            }
+            if ((dir.x * sectorL.y - dir.y * sectorL.x) < 0f)
+            {
+                if (CollisionDetect2DCircle(Vector2.zero, sectorL, circle)) return true;
+            }
+            if ((dir.x * sectorR.y - dir.y * sectorR.x) <= 0f && (dir.x * sectorL.y - dir.y * sectorL.x) >= 0f)
+                return true;
+
+
+            return false;
+
+
+            //Vector2 tangentR, tangentL;
+            //MathUtil.GetTangentOnCircle(circle.position2D, circle.radius, sector.position2D, out tangentR, out tangentL);
 
             //if( sectorSpaceCircle.x
 
