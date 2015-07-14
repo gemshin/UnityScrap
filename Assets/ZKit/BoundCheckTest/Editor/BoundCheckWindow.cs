@@ -25,8 +25,8 @@ public class BoundCheckWindow : EditorWindow
         Sector2D,
         None
     }
-    private static BoundType _boundType = BoundType.Box;
-    private static TestMode _testMode = TestMode.None;
+    private static BoundType _boundType = BoundType.Circle;
+    private static TestMode _testMode = TestMode.Sector2D;
 
     private static Vector3 _currentClickedPos;
     private static Vector3 _prevClickedPos;
@@ -171,9 +171,6 @@ public class BoundCheckWindow : EditorWindow
         sceneView.Repaint();
     }
 
-    static Vector2 debLineA = new Vector2();
-    static Vector2 debLineB = new Vector2();
-
     [DrawGizmo(GizmoType.NotSelected | GizmoType.Selected)]
     static void DrawGizmo(GizmoDummy dummy, GizmoType gizmoType)
     {
@@ -216,13 +213,31 @@ public class BoundCheckWindow : EditorWindow
                 break;
             case TestMode.Sector2D:
                 _testSector.DrawGizmo();
-                Gizmos.DrawLine(_currentClickedPos, debLineA);
-                Gizmos.DrawLine(_currentClickedPos, debLineB);
                 break;
             case TestMode.Circle2D:
                 _testCircle.DrawGizmo();
                 break;
         }
+
+        if (_boundType == BoundType.Circle && _testMode == TestMode.Sector2D)
+        {
+            Vector2 lineR, lineL;
+            MathUtil.GetTangentOnCircle(_circle.position2D, _circle.radius, _testSector.position2D, out lineR, out lineL);
+            Gizmos.color = Color.red;
+            Gizmos.DrawLine(_testSector.position, new Vector3(lineR.x, _circle.position.y, lineR.y));
+            Gizmos.color = Color.green;
+            Gizmos.DrawLine(_testSector.position, new Vector3(lineL.x, _circle.position.y, lineL.y));
+        }
+        if (_boundType == BoundType.Sector && _testMode == TestMode.Circle2D)
+        {
+            Vector2 lineR, lineL;
+            MathUtil.GetTangentOnCircle(_testCircle.position2D, _testCircle.radius, _sector.position2D, out lineR, out lineL);
+            Gizmos.color = Color.red;
+            Gizmos.DrawLine(_sector.position, new Vector3(lineR.x, _testCircle.position.y, lineR.y));
+            Gizmos.color = Color.green;
+            Gizmos.DrawLine(_sector.position, new Vector3(lineL.x, _testCircle.position.y, lineL.y));
+        }
+        
     }
 
     void OnGUI()
@@ -357,8 +372,6 @@ public class BoundCheckWindow : EditorWindow
             _testSector.radius = EditorGUILayout.FloatField("Sector Radius", _testSector.radius);
             _testSector.angle = EditorGUILayout.Slider("Sector Angle", _testSector.angle, 0f, 360f);
             _testSector.rotate_y = EditorGUILayout.Slider("Sector Rotate Y Angle", _testSector.rotate_y, 0f, 360f);
-
-            MathUtil.GetTangentOnCircle(_testCircle.position, _testCircle.radius, _currentClickedPos, out debLineA, out debLineB);
         }
         else if (_testMode == TestMode.Circle2D)
         {
@@ -442,6 +455,9 @@ public class BoundCheckWindow : EditorWindow
                     case TestMode.Circle2D:
                         EditorGUILayout.LabelField("In ?", (isIn = MathUtil.CollisionDetect2DCircle(_circle, _testCircle)) ? "Yes" : "No");
                         break;
+                    case TestMode.Sector2D:
+                        EditorGUILayout.LabelField("In ?", (isIn = MathUtil.CollisionDetect2DSector(_circle, _testSector)) ? "Yes" : "No");
+                        break;
                 }
                 break;
             case BoundType.Capsule:
@@ -463,6 +479,9 @@ public class BoundCheckWindow : EditorWindow
                         break;
                     case TestMode.Circle2D:
                         EditorGUILayout.LabelField("In ?", (isIn = MathUtil.CollisionDetect2DCircle(_capsule.GetCircle(), _testCircle)) ? "Yes" : "No");
+                        break;
+                    case TestMode.Sector2D:
+                        EditorGUILayout.LabelField("In ?", (isIn = MathUtil.CollisionDetect2DSector(_capsule.GetCircle(), _testSector)) ? "Yes" : "No");
                         break;
                 }
                 break;

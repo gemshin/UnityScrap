@@ -281,20 +281,15 @@ namespace ZKit
 
             return true;
         }
-        public static bool GetTangentOnCircle(Vector2 circle_position, float circle_radius, Vector2 point, out Vector2 tangentA, out Vector2 tangentB)
+        public static bool GetTangentOnCircle(Vector2 circle_position, float circle_radius, Vector2 point, out Vector2 tangentR, out Vector2 tangentL)
         {
             Vector2 pointSpaceCircle = circle_position - point;
             float len = pointSpaceCircle.magnitude;
             float a = Mathf.Asin(circle_radius / len);
             float b = Mathf.Atan2(pointSpaceCircle.y, pointSpaceCircle.x);
 
-            float t = b - a;
-            tangentA = circle_position + new Vector2(circle_radius * Mathf.Sin(t), circle_radius * -Mathf.Cos(t));
-
-            t = b + a;
-            tangentB = circle_position + new Vector2(circle_radius * -Mathf.Sin(t), circle_radius * Mathf.Cos(t));
-
-            tangentA = circle_position;
+            tangentR = circle_position + new Vector2(Mathf.Sin(b - a), -Mathf.Cos(b - a)) * circle_radius;
+            tangentL = circle_position + new Vector2(-Mathf.Sin(b + a), Mathf.Cos(b + a)) * circle_radius;
 
             return true;
         }
@@ -531,6 +526,12 @@ namespace ZKit
             sectorSpaceCircle.x = x;
             sectorSpaceCircle.y = y;
 
+            Vector2 tangentR, tangentL;
+            MathUtil.GetTangentOnCircle(circle.position2D, circle.radius, sector.position2D, out tangentR, out tangentL);
+
+            //if( sectorSpaceCircle.x
+
+
             //float rad = (-rotate_y + angle * 0.5f) * Mathf.Deg2Rad;
             //new Vector3(-Mathf.Sin(rad), 0f, Mathf.Cos(rad));
             //sector.forward
@@ -542,5 +543,43 @@ namespace ZKit
         {
             return false;
         }
+        //private int FindLineCircleIntersections(float cx, float cy, float radius,
+        //	PointF point1, PointF point2, out PointF intersection1, out PointF intersection2)
+        //{
+        //	float dx, dy, A, B, C, det, t;
+        //
+        //	dx = point2.X - point1.X;
+        //	dy = point2.Y - point1.Y;
+        //
+        //	A = dx * dx + dy * dy;
+        //	B = 2 * (dx * (point1.X - cx) + dy * (point1.Y - cy));
+        //	C = (point1.X - cx) * (point1.X - cx) + (point1.Y - cy) * (point1.Y - cy) - radius * radius;
+        //
+        //	det = B * B - 4 * A * C;
+        //	if ((A <= 0.0000001) || (det < 0))
+        //	{
+        //		// No real solutions.
+        //		intersection1 = new PointF(float.NaN, float.NaN);
+        //		intersection2 = new PointF(float.NaN, float.NaN);
+        //		return 0;
+        //	}
+        //	else if (det == 0)
+        //	{
+        //		// One solution.
+        //		t = -B / (2 * A);
+        //		intersection1 = new PointF(point1.X + t * dx, point1.Y + t * dy);
+        //		intersection2 = new PointF(float.NaN, float.NaN);
+        //		return 1;
+        //	}
+        //	else
+        //	{
+        //		// Two solutions.
+        //		t = (float)((-B + Math.Sqrt(det)) / (2 * A));
+        //		intersection1 = new PointF(point1.X + t * dx, point1.Y + t * dy);
+        //		t = (float)((-B - Math.Sqrt(det)) / (2 * A));
+        //		intersection2 = new PointF(point1.X + t * dx, point1.Y + t * dy);
+        //		return 2;
+        //	}
+        //}
     }
 }
