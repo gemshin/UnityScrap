@@ -555,12 +555,19 @@ namespace ZKit
             float tanR, tanL;
             GetTangentAngleOnCircle(sectorSpaceCircle, circle.radius, Vector2.zero, out tanR, out tanL, true);
 
+            if (float.IsNaN(tanR) || float.IsNaN(tanL)) return true;
+
             float sectorHalfAng = sector.angle * 0.5f;
 
-            Debug.Log("lll : " + tanL * Mathf.Rad2Deg + " rrr : " + tanR * Mathf.Rad2Deg);
+            float circleAng = Mathf.Atan2(sectorSpaceCircle.x, sectorSpaceCircle.y) * Mathf.Rad2Deg;
+            if (circleAng >= 0f && sectorHalfAng >= circleAng) return true;
+            if (circleAng < 0f && -sectorHalfAng <= circleAng) return true;
 
-            if (tanL > 0f && sectorHalfAng < tanL * Mathf.Rad2Deg) return false;
-            if (tanR < 0f && -sectorHalfAng > tanR * Mathf.Rad2Deg) return false;
+            if (tanL >= 0f && sectorHalfAng >= tanL * Mathf.Rad2Deg) return true;
+            if (tanL < 0f && -sectorHalfAng <= tanL * Mathf.Rad2Deg) return true;
+
+            if (tanR >= 0f && sectorHalfAng >= tanR * Mathf.Rad2Deg) return true;
+            if (tanR < 0f && - sectorHalfAng <= tanR * Mathf.Rad2Deg) return true;
 
             //Vector2 sectorL, sectorR;
 
@@ -583,7 +590,7 @@ namespace ZKit
             //    if (!CollisionDetect2DCircle(sector.position2D, sector.position2D + sectorL, circle)) return false;
             //}
 
-            return true;
+            return false;
         }
         public static bool CollisionDetect2DSector(Sector sector, Sector sector_a)
         {
