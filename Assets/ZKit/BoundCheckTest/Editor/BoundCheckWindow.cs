@@ -25,8 +25,8 @@ public class BoundCheckWindow : EditorWindow
         Sector2D,
         None
     }
-    private static BoundType _boundType = BoundType.Circle;
-    private static TestMode _testMode = TestMode.Sector2D;
+    private static BoundType _boundType = BoundType.Sector;
+    private static TestMode _testMode = TestMode.Circle2D;
 
     private static Vector3 _currentClickedPos;
     private static Vector3 _prevClickedPos;
@@ -237,7 +237,22 @@ public class BoundCheckWindow : EditorWindow
             Gizmos.color = Color.green;
             Gizmos.DrawLine(_sector.position, new Vector3(lineL.x, _testCircle.position.y, lineL.y));
         }
-        
+
+        //float tanR, tanL;
+        ////GetTangentAngleOnCircle(circle.position2D, circle.radius, sector.position2D, out tanR, out tanL);
+        //MathUtil.GetTangentAngleOnCircle(_testCircle.position2D, _testCircle.radius, _sector.position2D, out tanR, out tanL);
+
+        //Vector2 l, r;
+        //l = r = new Vector2();
+        //l.x = -Mathf.Sin(-tanL);
+        //l.y = Mathf.Cos(-tanL);
+        //r.x = -Mathf.Sin(-tanR);
+        //r.y = Mathf.Cos(-tanR);
+
+        //Gizmos.color = Color.green;
+        //Gizmos.DrawLine(_sector.position, new Vector3(l.x, 0f, l.y));
+        //Gizmos.color = Color.blue;
+        //Gizmos.DrawLine(_sector.position, new Vector3(r.x, 0f, r.y));
     }
 
     void OnGUI()

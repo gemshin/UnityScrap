@@ -281,17 +281,43 @@ namespace ZKit
 
             return true;
         }
-        public static bool GetTangentOnCircle(Vector2 circle_position, float circle_radius, Vector2 point, out Vector2 tangentR, out Vector2 tangentL)
+        public static void GetTangentOnCircle(Vector2 circle_position, float circle_radius, Vector2 point, out Vector2 tangentR, out Vector2 tangentL)
         {
             Vector2 pointSpaceCircle = circle_position - point;
             float len = pointSpaceCircle.magnitude;
-            float a = Mathf.Asin(circle_radius / len);
-            float b = Mathf.Atan2(pointSpaceCircle.y, pointSpaceCircle.x);
+            float tanAng = Mathf.Asin(circle_radius / len);
+            float circleAng = Mathf.Atan2(pointSpaceCircle.y, pointSpaceCircle.x);
 
-            tangentR = circle_position + new Vector2(Mathf.Sin(b - a), -Mathf.Cos(b - a)) * circle_radius;
-            tangentL = circle_position + new Vector2(-Mathf.Sin(b + a), Mathf.Cos(b + a)) * circle_radius;
+            tangentR = circle_position + new Vector2(Mathf.Sin(circleAng - tanAng), -Mathf.Cos(circleAng - tanAng)) * circle_radius;
+            tangentL = circle_position + new Vector2(-Mathf.Sin(circleAng + tanAng), Mathf.Cos(circleAng + tanAng)) * circle_radius;
+        }
+        /// <summary>
+        /// 원의 접선 각도를 구한다. 기준은 (0,1)
+        /// </summary>
+        /// <param name="circle_position"></param>
+        /// <param name="circle_radius"></param>
+        /// <param name="point"></param>
+        /// <param name="tanRadR"></param>
+        /// <param name="tanRadL"></param>
+        public static void GetTangentAngleOnCircle(Vector2 circle_position, float circle_radius, Vector2 point, out float tanRadR, out float tanRadL, bool halfLimit = false)
+        {
+            Vector2 pointSpaceCircle = circle_position - point;
+            float len = pointSpaceCircle.magnitude;
+            float tanAng = Mathf.Asin(circle_radius / len);
+            float circleAng = Mathf.Atan2(pointSpaceCircle.x, pointSpaceCircle.y);
 
-            return true;
+            tanRadR = circleAng + tanAng;
+            tanRadL = circleAng - tanAng;
+
+
+            if (tanRadR < 0f) tanRadR += 2f * Mathf.PI;
+            if (tanRadL < 0f) tanRadL += 2f * Mathf.PI;
+
+            if (halfLimit)
+            {
+                tanRadR = tanRadR > Mathf.PI ? -(2f*Mathf.PI - tanRadR) : tanRadR;
+                tanRadL = tanRadL > Mathf.PI ? -(2f*Mathf.PI - tanRadL) : tanRadL;
+            }
         }
 
         public static bool CollisionDetect2DDot(Box box, Vector2 dot_position)
@@ -526,6 +552,14 @@ namespace ZKit
             sectorSpaceCircle.x = x;
             sectorSpaceCircle.y = y;
 
+            float tanR, tanL;
+            GetTangentAngleOnCircle(sectorSpaceCircle, circle.radius, sector.position2D, out tanR, out tanL, true);
+
+            float sectorHalfAng = sector.angle * 0.5f;
+
+            if (sectorHalfAng < tanL * Mathf.Rad2Deg ) return false;
+            if (-sectorHalfAng > tanR * Mathf.Rad2Deg) return false;
+
             Vector2 sectorL, sectorR;
 
             sectorL = new Vector2();
@@ -540,30 +574,13 @@ namespace ZKit
 
             if ((dir.x * sectorR.y - dir.y * sectorR.x) > 0f)
             {
-                if (CollisionDetect2DCircle(Vector2.zero, sectorR, circle)) return true;
+                if (!CollisionDetect2DCircle(Vector2.zero, sectorR, circle)) return false;
             }
             if ((dir.x * sectorL.y - dir.y * sectorL.x) < 0f)
             {
-                if (CollisionDetect2DCircle(Vector2.zero, sectorL, circle)) return true;
+                if (!CollisionDetect2DCircle(Vector2.zero, sectorL, circle)) return false;
             }
-            if ((dir.x * sectorR.y - dir.y * sectorR.x) <= 0f && (dir.x * sectorL.y - dir.y * sectorL.x) >= 0f)
-                return true;
 
-
-            return false;
-
-
-            //Vector2 tangentR, tangentL;
-            //MathUtil.GetTangentOnCircle(circle.position2D, circle.radius, sector.position2D, out tangentR, out tangentL);
-
-            //if( sectorSpaceCircle.x
-
-
-            //float rad = (-rotate_y + angle * 0.5f) * Mathf.Deg2Rad;
-            //new Vector3(-Mathf.Sin(rad), 0f, Mathf.Cos(rad));
-            //sector.forward
-
-            //return false;
             return true;
         }
         public static bool CollisionDetect2DSector(Sector sector, Sector sector_a)

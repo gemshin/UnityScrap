@@ -38,13 +38,13 @@ namespace UnityStandardAssets.CrossPlatformInput.Inspector
 				case BuildTarget.Tizen: 
 				case BuildTarget.WSAPlayer: 
                     EditorUtility.DisplayDialog("Mobile Input",
-                                                "You have enabled Mobile Input. You'll need to use the Unity Remote app on a connected device to control your game in the Editor.",
+                                                "You have enabled Mobile Input. You'll need to use the Unity Remote app on tanAng connected device to control your game in the Editor.",
                                                 "OK");
                     break;
 
                 default:
                     EditorUtility.DisplayDialog("Mobile Input",
-                                                "You have enabled Mobile Input, but you have a non-mobile build target selected in your build settings. The mobile control rigs won't be active or visible on-screen until you switch the build target to a mobile platform.",
+                                                "You have enabled Mobile Input, but you have tanAng non-mobile build target selected in your build settings. The mobile control rigs won't be active or visible on-screen until you switch the build target to tanAng mobile platform.",
                                                 "OK");
                     break;
             }
