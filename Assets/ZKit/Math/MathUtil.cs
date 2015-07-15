@@ -553,33 +553,35 @@ namespace ZKit
             sectorSpaceCircle.y = y;
 
             float tanR, tanL;
-            GetTangentAngleOnCircle(sectorSpaceCircle, circle.radius, sector.position2D, out tanR, out tanL, true);
+            GetTangentAngleOnCircle(sectorSpaceCircle, circle.radius, Vector2.zero, out tanR, out tanL, true);
 
             float sectorHalfAng = sector.angle * 0.5f;
 
-            if (sectorHalfAng < tanL * Mathf.Rad2Deg ) return false;
-            if (-sectorHalfAng > tanR * Mathf.Rad2Deg) return false;
+            Debug.Log("lll : " + tanL * Mathf.Rad2Deg + " rrr : " + tanR * Mathf.Rad2Deg);
 
-            Vector2 sectorL, sectorR;
+            if (tanL > 0f && sectorHalfAng < tanL * Mathf.Rad2Deg) return false;
+            if (tanR < 0f && -sectorHalfAng > tanR * Mathf.Rad2Deg) return false;
 
-            sectorL = new Vector2();
-            sectorL.x = -Mathf.Sin(sector.angle * 0.5f * Mathf.Deg2Rad) * sector.radius;
-            sectorL.y = Mathf.Cos(sector.angle * 0.5f * Mathf.Deg2Rad) * sector.radius;
+            //Vector2 sectorL, sectorR;
 
-            sectorR = new Vector2();
-            sectorR.x = -Mathf.Sin(-sector.angle * 0.5f * Mathf.Deg2Rad) * sector.radius;
-            sectorR.y = Mathf.Cos(-sector.angle * 0.5f * Mathf.Deg2Rad) * sector.radius;
+            //sectorL = new Vector2();
+            //sectorL.x = -Mathf.Sin(sector.angle * 0.5f * Mathf.Deg2Rad) * sector.radius;
+            //sectorL.y = Mathf.Cos(sector.angle * 0.5f * Mathf.Deg2Rad) * sector.radius;
 
-            Vector2 dir = sectorSpaceCircle - sector.position2D;
+            //sectorR = new Vector2();
+            //sectorR.x = -Mathf.Sin(-sector.angle * 0.5f * Mathf.Deg2Rad) * sector.radius;
+            //sectorR.y = Mathf.Cos(-sector.angle * 0.5f * Mathf.Deg2Rad) * sector.radius;
 
-            if ((dir.x * sectorR.y - dir.y * sectorR.x) > 0f)
-            {
-                if (!CollisionDetect2DCircle(Vector2.zero, sectorR, circle)) return false;
-            }
-            if ((dir.x * sectorL.y - dir.y * sectorL.x) < 0f)
-            {
-                if (!CollisionDetect2DCircle(Vector2.zero, sectorL, circle)) return false;
-            }
+            //Vector2 dir = sectorSpaceCircle - sector.position2D;
+            //Debug.Log(sectorL);
+            //if ((dir.x * sectorR.y - dir.y * sectorR.x) > 0f)
+            //{
+            //    if (!CollisionDetect2DCircle(sector.position2D, sector.position2D + sectorR, circle)) return false;
+            //}
+            //if ((dir.x * sectorL.y - dir.y * sectorL.x) < 0f)
+            //{
+            //    if (!CollisionDetect2DCircle(sector.position2D, sector.position2D + sectorL, circle)) return false;
+            //}
 
             return true;
         }

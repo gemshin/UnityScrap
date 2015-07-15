@@ -237,22 +237,6 @@ public class BoundCheckWindow : EditorWindow
             Gizmos.color = Color.green;
             Gizmos.DrawLine(_sector.position, new Vector3(lineL.x, _testCircle.position.y, lineL.y));
         }
-
-        //float tanR, tanL;
-        ////GetTangentAngleOnCircle(circle.position2D, circle.radius, sector.position2D, out tanR, out tanL);
-        //MathUtil.GetTangentAngleOnCircle(_testCircle.position2D, _testCircle.radius, _sector.position2D, out tanR, out tanL);
-
-        //Vector2 l, r;
-        //l = r = new Vector2();
-        //l.x = -Mathf.Sin(-tanL);
-        //l.y = Mathf.Cos(-tanL);
-        //r.x = -Mathf.Sin(-tanR);
-        //r.y = Mathf.Cos(-tanR);
-
-        //Gizmos.color = Color.green;
-        //Gizmos.DrawLine(_sector.position, new Vector3(l.x, 0f, l.y));
-        //Gizmos.color = Color.blue;
-        //Gizmos.DrawLine(_sector.position, new Vector3(r.x, 0f, r.y));
     }
 
     void OnGUI()
