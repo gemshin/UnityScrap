@@ -131,14 +131,14 @@ public class ScannerWindow : EditorWindow
         #endregion
 
         #region Draw JumpPoint
-        if (_testMode && _testShowJumpPoint)
-        {
-            foreach (Node n in JPS.Instance.TEST)
-            {
-                Handles.color = Color.blue;
-                Handles.DotCap(0, cells.GetPosVec3(n.Index, n.Height), Quaternion.identity, 0.3f);
-            }
-        } 
+        //if (_testMode && _testShowJumpPoint)
+        //{
+        //    foreach (Node n in JPS.Instance.TEST)
+        //    {
+        //        Handles.color = Color.blue;
+        //        Handles.DotCap(0, cells.GetPosVec3(n.Index, n.Height), Quaternion.identity, 0.3f);
+        //    }
+        //} 
         #endregion
 
         #region Index
@@ -269,7 +269,8 @@ public class ScannerWindow : EditorWindow
         }
         #endregion
 
-        SceneView.lastActiveSceneView.Repaint();
+        if (SceneView.lastActiveSceneView != null)
+            SceneView.lastActiveSceneView.Repaint();
     }
 
     [DrawGizmo(GizmoType.NotSelected | GizmoType.Selected)]

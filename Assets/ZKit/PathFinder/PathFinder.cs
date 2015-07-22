@@ -64,11 +64,11 @@ namespace ZKit.PathFinder
             }
             if (!insert)
                 _jumpPoint.Add(node);
-            TEST.Add(node);
+            //TEST.Add(node);
         }
         private void JumpPointRemove(Node node) { _jumpPoint.Remove(node); }
         private void ClosedListAdd(Node node) { _closedList[node.ID] = node; }
-        public List<Node> TEST = new List<Node>();
+        //public List<Node> TEST = new List<Node>();
         public Node[] _closedList = null;
 
         public Node[,] _map = null;
@@ -100,14 +100,19 @@ namespace ZKit.PathFinder
                     _map[y, x] = new Node((y * _countX + x), x, y, DataCon.Instance.CellDatas[y, x].Height, cango);
                 }
             }
+            _closedList = new Node[_countX * _countY];
         }
 
         private bool Prepare()
         {
             if (_map == null) return false;
-            _closedList = new Node[_countX * _countY];
+            //_closedList = new Node[_countX * _countY];
+            for(int i = 0; i < _closedList.Length; ++i)
+            {
+                _closedList[i] = null;
+            }
             _jumpPoint.Clear();
-            TEST.Clear();
+            //TEST.Clear();
             foreach (Node node in _map)
             {
                 node.Initialize();
