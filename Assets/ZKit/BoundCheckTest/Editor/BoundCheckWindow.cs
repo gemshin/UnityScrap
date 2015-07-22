@@ -43,7 +43,7 @@ public class BoundCheckWindow : EditorWindow
     private static Vector2 _lerpBoxSize = Vector2.one;
     #endregion
 
-    #region testArc
+    #region testSector
     private static Sector _testSector = new Sector(); 
     #endregion
 
