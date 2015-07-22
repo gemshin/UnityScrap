@@ -85,7 +85,7 @@ public static class Extensions
 
     public static string ToHexString(this Color color)
     {
-        return ZKit.MathUtil.DecimalToHex32(color.ColorToInt());
+        return ZKit.Math.Util.DecimalToHex32(color.ColorToInt());
     }
 
     public static string ToXmlColorString(this string message, Color color)

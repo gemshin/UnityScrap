@@ -3,22 +3,17 @@ using System.Collections.Generic;
 using System;
 using UnityEngine;
 
-namespace ZKit
+namespace ZKit.Math
 {
-    public static class MathUtil
+    public static class Geometry
     {
-        public static string DecimalToHex32(int num)
-        {
-            return num.ToString("X8");
-        }
-
-//Octants:
-//    y
-//  \2|1/
-//  3\|/0
-// ---+--- x
-//  4/|\7
-//  /5|6\
+        //Octants:
+        //    y
+        //  \2|1/
+        //  3\|/0
+        // ---+--- x
+        //  4/|\7
+        //  /5|6\
         public static int GetOctant(Point point)
         {
             int octant = 0;
@@ -26,14 +21,14 @@ namespace ZKit
             {
                 if (point.y >= 0) // 0 1
                 {
-                    if (Math.Abs(point.x) >= Math.Abs(point.y)) // 0
+                    if (System.Math.Abs(point.x) >= System.Math.Abs(point.y)) // 0
                         octant = 0;
                     else // 1
                         octant = 1;
                 }
                 else if (point.y < 0) // 6 7
                 {
-                    if (Math.Abs(point.x) >= Math.Abs(point.y)) // 7
+                    if (System.Math.Abs(point.x) >= System.Math.Abs(point.y)) // 7
                         octant = 7;
                     else // 6
                         octant = 6;
@@ -43,14 +38,14 @@ namespace ZKit
             {
                 if (point.y >= 0) // 2 3
                 {
-                    if (Math.Abs(point.x) >= Math.Abs(point.y)) // 3
+                    if (System.Math.Abs(point.x) >= System.Math.Abs(point.y)) // 3
                         octant = 3;
                     else // 2
                         octant = 2;
                 }
                 else if (point.y < 0) // 4 5
                 {
-                    if (Math.Abs(point.x) >= Math.Abs(point.y)) // 4
+                    if (System.Math.Abs(point.x) >= System.Math.Abs(point.y)) // 4
                         octant = 4;
                     else // 5
                         octant = 5;
@@ -72,14 +67,14 @@ namespace ZKit
             {
                 if (pos.z >= 0) // 0 1
                 {
-                    if (Math.Abs(pos.x) >= Math.Abs(pos.z)) // 0
+                    if (System.Math.Abs(pos.x) >= System.Math.Abs(pos.z)) // 0
                         octant = 0;
                     else // 1
                         octant = 1;
                 }
                 else if (pos.z < 0) // 6 7
                 {
-                    if (Math.Abs(pos.x) >= Math.Abs(pos.z)) // 7
+                    if (System.Math.Abs(pos.x) >= System.Math.Abs(pos.z)) // 7
                         octant = 7;
                     else // 6
                         octant = 6;
@@ -89,14 +84,14 @@ namespace ZKit
             {
                 if (pos.z >= 0) // 2 3
                 {
-                    if (Math.Abs(pos.x) >= Math.Abs(pos.z)) // 3
+                    if (System.Math.Abs(pos.x) >= System.Math.Abs(pos.z)) // 3
                         octant = 3;
                     else // 2
                         octant = 2;
                 }
                 else if (pos.z < 0) // 4 5
                 {
-                    if (Math.Abs(pos.x) >= Math.Abs(pos.z)) // 4
+                    if (System.Math.Abs(pos.x) >= System.Math.Abs(pos.z)) // 4
                         octant = 4;
                     else // 5
                         octant = 5;
@@ -133,7 +128,6 @@ namespace ZKit
             }
             return p;
         }
-
         private static UnityEngine.Vector3 SwitchToOctantZeroFrom(int octant, UnityEngine.Vector3 p)
         {
             switch (octant)
@@ -160,12 +154,12 @@ namespace ZKit
         static public List<Point> BresenhamLine(Point p1, Point p2)
         {
             List<Point> ret = new List<Point>();
-
             Point dp = p2 - p1;
+            if (dp.x == 0 || dp.y == 0) return ret;
             int octant = GetOctant(dp);
             dp = SwitchToOctantZeroFrom(octant, dp);
             ret.Add(p1);
-            int d = 2*dp.y - dp.x; // first D
+            int d = 2 * dp.y - dp.x; // first D
             int y = 0;
             for (int x = 1; x <= dp.x; ++x)
             {
@@ -182,14 +176,11 @@ namespace ZKit
 
             return ret;
         }
-
         public static List<Point> BresenhamLineEx(Point p1, Point p2)
         {
             List<Point> ret = new List<Point>();
             Point dp = p2 - p1;
-
             if (dp.x == 0 || dp.y == 0) return ret;
-
             int octant = GetOctant(dp);
             dp = SwitchToOctantZeroFrom(octant, dp);
 
@@ -230,7 +221,7 @@ namespace ZKit
 
             ret.Add(p1);
 
-            for (int x = 1; x < dp.x; ++x) // cell 크기가 1X1 인 가정.
+            for (int x = 1; x < dp.x; ++x)
             {
                 float tmp = dd * (float)x;
                 int z = (int)tmp;
@@ -271,6 +262,14 @@ namespace ZKit
 
             return true;
         }
+        /// <summary>
+        /// 원의 접점을 구한다.
+        /// </summary>
+        /// <param name="circle_position"></param>
+        /// <param name="circle_radius"></param>
+        /// <param name="point"></param>
+        /// <param name="tangentR"></param>
+        /// <param name="tangentL"></param>
         public static void GetTangentOnCircle(Vector2 circle_position, float circle_radius, Vector2 point, out Vector2 tangentR, out Vector2 tangentL)
         {
             Vector2 pointSpaceCircle = circle_position - point;
@@ -305,8 +304,8 @@ namespace ZKit
 
             if (halfLimit)
             {
-                tanRadR = tanRadR > Mathf.PI ? -(2f*Mathf.PI - tanRadR) : tanRadR;
-                tanRadL = tanRadL > Mathf.PI ? -(2f*Mathf.PI - tanRadL) : tanRadL;
+                tanRadR = tanRadR > Mathf.PI ? -(2f * Mathf.PI - tanRadR) : tanRadR;
+                tanRadL = tanRadL > Mathf.PI ? -(2f * Mathf.PI - tanRadL) : tanRadL;
             }
         }
 
@@ -363,13 +362,13 @@ namespace ZKit
             Vector2 br = new Vector2(halfWidth, -halfHeight);
 
             Vector2 pResult;
-            if (MathUtil.Intersects(originStart, originEnd, tl, bl, out pResult))
+            if (Intersects(originStart, originEnd, tl, bl, out pResult))
                 return true;
-            if (MathUtil.Intersects(originStart, originEnd, tl, tr, out pResult))
+            if (Intersects(originStart, originEnd, tl, tr, out pResult))
                 return true;
-            if (MathUtil.Intersects(originStart, originEnd, tr, br, out pResult))
+            if (Intersects(originStart, originEnd, tr, br, out pResult))
                 return true;
-            if (MathUtil.Intersects(originStart, originEnd, bl, br, out pResult))
+            if (Intersects(originStart, originEnd, bl, br, out pResult))
                 return true;
 
             return false;
@@ -557,7 +556,7 @@ namespace ZKit
             if (tanL < 0f && -sectorHalfAng <= tanL * Mathf.Rad2Deg) return true;
 
             if (tanR >= 0f && sectorHalfAng >= tanR * Mathf.Rad2Deg) return true;
-            if (tanR < 0f && - sectorHalfAng <= tanR * Mathf.Rad2Deg) return true;
+            if (tanR < 0f && -sectorHalfAng <= tanR * Mathf.Rad2Deg) return true;
 
             //Vector2 sectorL, sectorR;
 
@@ -624,5 +623,13 @@ namespace ZKit
         //		return 2;
         //	}
         //}
+    }
+
+    public static class Util
+    {
+        public static string DecimalToHex32(int num)
+        {
+            return num.ToString("X8");
+        }
     }
 }
