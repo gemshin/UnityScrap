@@ -13,11 +13,104 @@ namespace ZKit
         }
 
 //Octants:
+//    y
 //  \2|1/
 //  3\|/0
-// ---+---
+// ---+--- x
 //  4/|\7
 //  /5|6\
+        public static int GetOctant(Point point)
+        {
+            int octant = 0;
+            if (point.x >= 0) // 0 1 6 7
+            {
+                if (point.y >= 0) // 0 1
+                {
+                    if (Math.Abs(point.x) >= Math.Abs(point.y)) // 0
+                        octant = 0;
+                    else // 1
+                        octant = 1;
+                }
+                else if (point.y < 0) // 6 7
+                {
+                    if (Math.Abs(point.x) >= Math.Abs(point.y)) // 7
+                        octant = 7;
+                    else // 6
+                        octant = 6;
+                }
+            }
+            else if (point.x < 0) // 2 3 4 5
+            {
+                if (point.y >= 0) // 2 3
+                {
+                    if (Math.Abs(point.x) >= Math.Abs(point.y)) // 3
+                        octant = 3;
+                    else // 2
+                        octant = 2;
+                }
+                else if (point.y < 0) // 4 5
+                {
+                    if (Math.Abs(point.x) >= Math.Abs(point.y)) // 4
+                        octant = 4;
+                    else // 5
+                        octant = 5;
+                }
+            }
+
+            return octant;
+        }
+        public static int GetOctant(Point datum, Point point)
+        {
+            Point dp = point - datum;
+            return GetOctant(dp);
+        }
+
+        public static int GetOctant(Vector3 pos)
+        {
+            int octant = 0;
+            if (pos.x >= 0) // 0 1 6 7
+            {
+                if (pos.z >= 0) // 0 1
+                {
+                    if (Math.Abs(pos.x) >= Math.Abs(pos.z)) // 0
+                        octant = 0;
+                    else // 1
+                        octant = 1;
+                }
+                else if (pos.z < 0) // 6 7
+                {
+                    if (Math.Abs(pos.x) >= Math.Abs(pos.z)) // 7
+                        octant = 7;
+                    else // 6
+                        octant = 6;
+                }
+            }
+            else if (pos.x < 0) // 2 3 4 5
+            {
+                if (pos.z >= 0) // 2 3
+                {
+                    if (Math.Abs(pos.x) >= Math.Abs(pos.z)) // 3
+                        octant = 3;
+                    else // 2
+                        octant = 2;
+                }
+                else if (pos.z < 0) // 4 5
+                {
+                    if (Math.Abs(pos.x) >= Math.Abs(pos.z)) // 4
+                        octant = 4;
+                    else // 5
+                        octant = 5;
+                }
+            }
+
+            return octant;
+        }
+        public static int GetOctant(Vector3 datum, Vector3 pos)
+        {
+            Vector3 dp = pos - datum;
+            return GetOctant(dp);
+        }
+
         private static Point SwitchToOctantZeroFrom(int octant, Point p)
         {
             switch (octant)
@@ -69,41 +162,7 @@ namespace ZKit
             List<Point> ret = new List<Point>();
 
             Point dp = p2 - p1;
-            int octant = 0;
-            if (dp.x >= 0) // 0 1 6 7
-            {
-                if (dp.y >= 0) // 0 1
-                {
-                    if (Math.Abs(dp.x) >= Math.Abs(dp.y)) // 0
-                        octant = 0;
-                    else // 1
-                        octant = 1;
-                }
-                else if (dp.y < 0) // 6 7
-                {
-                    if (Math.Abs(dp.x) >= Math.Abs(dp.y)) // 7
-                        octant = 7;
-                    else // 6
-                        octant = 6;
-                }
-            }
-            else if (dp.x < 0) // 2 3 4 5
-            {
-                if (dp.y >= 0) // 2 3
-                {
-                    if (Math.Abs(dp.x) >= Math.Abs(dp.y)) // 3
-                        octant = 3;
-                    else // 2
-                        octant = 2;
-                }
-                else if (dp.y < 0) // 4 5
-                {
-                    if (Math.Abs(dp.x) >= Math.Abs(dp.y)) // 4
-                        octant = 4;
-                    else // 5
-                        octant = 5;
-                }
-            }
+            int octant = GetOctant(dp);
             dp = SwitchToOctantZeroFrom(octant, dp);
             ret.Add(p1);
             int d = 2*dp.y - dp.x; // first D
@@ -131,43 +190,9 @@ namespace ZKit
 
             if (dp.x == 0 || dp.y == 0) return ret;
 
-            int octant = 0;
-            if (dp.x >= 0) // 0 1 6 7
-            {
-                if (dp.y >= 0) // 0 1
-                {
-                    if (Math.Abs(dp.x) >= Math.Abs(dp.y)) // 0
-                        octant = 0;
-                    else // 1
-                        octant = 1;
-                }
-                else if (dp.y < 0) // 6 7
-                {
-                    if (Math.Abs(dp.x) >= Math.Abs(dp.y)) // 7
-                        octant = 7;
-                    else // 6
-                        octant = 6;
-                }
-            }
-            else if (dp.x < 0) // 2 3 4 5
-            {
-                if (dp.y >= 0) // 2 3
-                {
-                    if (Math.Abs(dp.x) >= Math.Abs(dp.y)) // 3
-                        octant = 3;
-                    else // 2
-                        octant = 2;
-                }
-                else if (dp.y < 0) // 4 5
-                {
-                    if (Math.Abs(dp.x) >= Math.Abs(dp.y)) // 4
-                        octant = 4;
-                    else // 5
-                        octant = 5;
-                }
-            }
-
+            int octant = GetOctant(dp);
             dp = SwitchToOctantZeroFrom(octant, dp);
+
             float d = (float)dp.y / (float)dp.x;
 
             if (d == 1) return ret;
@@ -197,42 +222,7 @@ namespace ZKit
 
             if (dp.x == 0 || dp.z == 0) return ret;
 
-            int octant = 0;
-            if (dp.x >= 0) // 0 1 6 7
-            {
-                if (dp.z >= 0) // 0 1
-                {
-                    if (Math.Abs(dp.x) >= Math.Abs(dp.z)) // 0
-                        octant = 0;
-                    else // 1
-                        octant = 1;
-                }
-                else if (dp.z < 0) // 6 7
-                {
-                    if (Math.Abs(dp.x) >= Math.Abs(dp.z)) // 7
-                        octant = 7;
-                    else // 6
-                        octant = 6;
-                }
-            }
-            else if (dp.x < 0) // 2 3 4 5
-            {
-                if (dp.z >= 0) // 2 3
-                {
-                    if (Math.Abs(dp.x) >= Math.Abs(dp.z)) // 3
-                        octant = 3;
-                    else // 2
-                        octant = 2;
-                }
-                else if (dp.z < 0) // 4 5
-                {
-                    if (Math.Abs(dp.x) >= Math.Abs(dp.z)) // 4
-                        octant = 4;
-                    else // 5
-                        octant = 5;
-                }
-            }
-
+            int octant = GetOctant(dp);
             dp = SwitchToOctantZeroFrom(octant, dp);
             float dd = (float)dp.z / (float)dp.x;
 

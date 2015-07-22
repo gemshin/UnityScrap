@@ -241,8 +241,8 @@ namespace ZKit
         /// <returns>하나라도 값이 있으면 true, 모두 없으면 false를 반환</returns>
         public static bool GetSplitAttValue(XmlElement element, string attName, out UnityEngine.Vector3 ret, UnityEngine.Vector3 def)
         {
-            XmlNode nodeX = element.Attributes.GetNamedItem(attName + "x");
-            XmlNode nodeY = element.Attributes.GetNamedItem(attName + "y");
+            XmlNode nodeX = element.Attributes.GetNamedItem(attName + "axis_j");
+            XmlNode nodeY = element.Attributes.GetNamedItem(attName + "axis_i");
             XmlNode nodeZ = element.Attributes.GetNamedItem(attName + "z");
             ret = def;
 

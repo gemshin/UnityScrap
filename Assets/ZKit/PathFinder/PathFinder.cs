@@ -134,6 +134,10 @@ namespace ZKit.PathFinder
 
             Point sp = DataCon.Instance.CellDatas.GetNearIndex(start);
             Point ep = DataCon.Instance.CellDatas.GetNearIndex(end);
+            if (!_map[ep.y, ep.x].CanGo)
+            {
+                if (!FindMovablePoint(ep, sp, out ep)) return null;
+            }
 
             _start = _map[sp.y, sp.x];
             _end = _map[ep.y, ep.x];
@@ -203,17 +207,18 @@ namespace ZKit.PathFinder
             //return result;
         }
 
-        private void optimization(ref List<Vector3> value)
-        {
-            
-        }
-
         public List<Point> Find(Point start, Point end)
         {
             if (!Prepare()) return null;
 
+            Point ep = end;
+            if (!_map[ep.y, ep.x].CanGo)
+            {
+                if (!FindMovablePoint(ep, start, out ep)) return null;
+            }
+
             _start = _map[start.y, start.x];
-            _end = _map[end.y, end.x];
+            _end = _map[ep.y, ep.x];
 
             JumpPointAdd(_map[_start.Y, _start.X], null);
 
@@ -272,6 +277,149 @@ namespace ZKit.PathFinder
             //pathResult.RemoveAt(0);
 
             return pathResult;
+        }
+
+        private bool FindMovablePoint(Point point, Point player, out Point movablePoint, int maxLevel = 32)
+        {
+            movablePoint = new Point();
+
+            if(_map == null) return false;
+
+            //Octants:
+            //  \2|1/
+            //  3\|/0
+            // ---+---
+            //  4/|\7
+            //  /5|6\
+            int octant = MathUtil.GetOctant(point, player);
+
+            int axis_i, axis_ei, axis_ci;
+            int axis_j, axis_ej, axis_cj;
+            bool changed = false;
+
+            for (int level = 1; level < maxLevel; ++level)
+            {
+                switch (octant)
+                {
+                    default:
+                    case 1:
+                        axis_i = point.y + level;
+                        axis_ei = point.y - level;
+                        axis_ci = -1;
+
+                        axis_j = point.x + level;
+                        axis_ej = point.x - level;
+                        axis_cj = -1;
+                        break;
+                    case 2:
+                        axis_i = point.y + level;
+                        axis_ei = point.y - level;
+                        axis_ci = -1;
+
+                        axis_j = point.x - level;
+                        axis_ej = point.x + level;
+                        axis_cj = 1;
+                        break;
+                    case 3:
+                        axis_i = point.x - level;
+                        axis_ei = point.x + level;
+                        axis_ci = 1;
+
+                        axis_j = point.y + level;
+                        axis_ej = point.y - level;
+                        axis_cj = -1;
+                        changed = true;
+                        break;
+                    case 4:
+                        axis_i = point.x - level;
+                        axis_ei = point.x + level;
+                        axis_ci = 1;
+
+                        axis_j = point.y - level;
+                        axis_ej = point.y + level;
+                        axis_cj = 1;
+                        changed = true;
+                        break;
+                    case 5:
+                        axis_i = point.y - level;
+                        axis_ei = point.y + level;
+                        axis_ci = 1;
+
+                        axis_j = point.x - level;
+                        axis_ej = point.x + level;
+                        axis_cj = 1;
+                        break;
+                    case 6:
+                        axis_i = point.y - level;
+                        axis_ei = point.y + level;
+                        axis_ci = 1;
+
+                        axis_j = point.x + level;
+                        axis_ej = point.x - level;
+                        axis_cj = -1;
+                        break;
+                    case 7:
+                        axis_i = point.x + level;
+                        axis_ei = point.x - level;
+                        axis_ci = -1;
+
+                        axis_j = point.y - level;
+                        axis_ej = point.y + level;
+                        axis_cj = 1;
+                        changed = true;
+                        break;
+                    case 0:
+                        axis_i = point.x + level;
+                        axis_ei = point.x - level;
+                        axis_ci = -1;
+
+                        axis_j = point.y + level;
+                        axis_ej = point.y - level;
+                        axis_cj = -1;
+                        changed = true;
+                        break;
+                }
+
+                for (int i = axis_i;; i += axis_ci)
+                {
+                    if (axis_ei > axis_i && i > axis_ei) break;
+                    if (axis_ei < axis_i && i < axis_ei) break;
+
+                    if (i < 0) continue;
+                    if (changed) { if (GetCountX <= i) continue; }
+                    else { if (GetCountY <= i) continue; }
+                    int count = axis_cj;
+                    if (i != axis_i && i != axis_ei) // not( first || last )
+                        count = 2 * level * axis_cj;
+
+                    for (int j = axis_j;; j += count)
+                    {
+                        if (axis_ej > axis_j && j > axis_ej) break;
+                        if (axis_ej < axis_j && j < axis_ej) break;
+                        if (j < 0) continue;
+                        if (changed) { if (GetCountY <= j) continue; }
+                        else { if (GetCountX <= j) continue; }
+                        if (changed)
+                        {
+                            if (_map[j, i].CanGo == true)
+                            {
+                                movablePoint = new Point(i, j);
+                                return true;
+                            }
+                        }
+                        else
+                        {
+                            if (_map[i, j].CanGo == true)
+                            {
+                                movablePoint = new Point(j, i);
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return false;
         }
 
         private bool Scan(Node current)
