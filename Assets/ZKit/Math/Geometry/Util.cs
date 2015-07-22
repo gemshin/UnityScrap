@@ -1,11 +1,10 @@
-﻿using System.Collections;
+﻿using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
-using System;
-using UnityEngine;
 
-namespace ZKit.Math
+namespace ZKit.Math.Geometry
 {
-    public static class Geometry
+    public static class Util
     {
         //Octants:
         //    y
@@ -623,13 +622,5 @@ namespace ZKit.Math
         //		return 2;
         //	}
         //}
-    }
-
-    public static class Util
-    {
-        public static string DecimalToHex32(int num)
-        {
-            return num.ToString("X8");
-        }
     }
 }

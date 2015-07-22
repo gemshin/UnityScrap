@@ -19,7 +19,7 @@ public class PackCellData : IEnumerable//, IEnumerator
 
     ~PackCellData() { Clear(); }
 
-    public void Clear() { _cellDatas = new CellData[0, 0]; _countX = _countX = 0; }
+    public void Clear() { _cellDatas = new CellData[0, 0]; _countX = _countY = 0; }
 
     public CellData this[int y, int x] { get { return _cellDatas[y, x]; } }
     public bool IsEmpty

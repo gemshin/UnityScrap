@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-namespace ZKit
+namespace ZKit.Math.Geometry
 {
     public class Circle
     {

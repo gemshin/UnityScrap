@@ -42,13 +42,13 @@ namespace ZKit
                 sr.Close();
                 xmlDocument.LoadXml(text);
             }
-            catch (FileNotFoundException e)
+            catch (FileNotFoundException)
             {
 
                 Debug.Log(string.Format("{0} 파일이 없습니다.", filePath).ToXmlColorString(Color.red));
                 return RESULT.ERR_FILE_NOT_FOUND;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 Debug.Log(string.Format("{0} 파일 열기 실패.", filePath).ToXmlColorString(Color.red));
                 return RESULT.ERR_UNKNOWN;

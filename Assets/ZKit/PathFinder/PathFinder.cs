@@ -169,7 +169,7 @@ namespace ZKit.PathFinder
                     for (int j = i + 2; j < pathResult.Count; ++j)
                     {
                         bool canGo = true;
-                        List<Point> line = Math.Geometry.BresenhamLineEx(pathResult[i], pathResult[j]);
+                        List<Point> line = ZKit.Math.Geometry.Util.BresenhamLineEx(pathResult[i], pathResult[j]);
                         if (line.Count == 0) canGo = false;
                         foreach (Point ele in line)
                         {
@@ -255,7 +255,7 @@ namespace ZKit.PathFinder
                     for (int j = i + 2; j < pathResult.Count; ++j)
                     {
                         bool canGo = true;
-                        List<Point> line = Math.Geometry.BresenhamLineEx(pathResult[i], pathResult[j]);
+                        List<Point> line = ZKit.Math.Geometry.Util.BresenhamLineEx(pathResult[i], pathResult[j]);
                         if (line.Count == 0) canGo = false;
                         foreach (Point ele in line)
                         {
@@ -285,7 +285,7 @@ namespace ZKit.PathFinder
 
             if(_map == null) return false;
 
-            int octant = Math.Geometry.GetOctant(point, player);
+            int octant = ZKit.Math.Geometry.Util.GetOctant(point, player);
 
             int axis_i, axis_ei, axis_ci;
             int axis_j, axis_ej, axis_cj;

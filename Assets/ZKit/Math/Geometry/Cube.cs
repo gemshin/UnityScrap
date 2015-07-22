@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace ZKit
+namespace ZKit.Math.Geometry
 {
     public class Cube
     {

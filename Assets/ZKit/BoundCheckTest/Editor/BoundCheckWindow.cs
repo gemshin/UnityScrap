@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
 using UnityEditor;
 using System.Collections;
-
 using ZKit;
+using ZKit.Math.Geometry;
 
 public class BoundCheckWindow : EditorWindow
 {
@@ -222,7 +222,7 @@ public class BoundCheckWindow : EditorWindow
         if (_boundType == BoundType.Circle && _testMode == TestMode.Sector2D)
         {
             Vector2 lineR, lineL;
-            ZKit.Math.Geometry.GetTangentOnCircle(_circle.position2D, _circle.radius, _testSector.position2D, out lineR, out lineL);
+            Util.GetTangentOnCircle(_circle.position2D, _circle.radius, _testSector.position2D, out lineR, out lineL);
             Gizmos.color = Color.red;
             Gizmos.DrawLine(_testSector.position, new Vector3(lineR.x, _circle.position.y, lineR.y));
             Gizmos.color = Color.green;
@@ -231,7 +231,7 @@ public class BoundCheckWindow : EditorWindow
         if (_boundType == BoundType.Sector && _testMode == TestMode.Circle2D)
         {
             Vector2 lineR, lineL;
-            ZKit.Math.Geometry.GetTangentOnCircle(_testCircle.position2D, _testCircle.radius, _sector.position2D, out lineR, out lineL);
+            Util.GetTangentOnCircle(_testCircle.position2D, _testCircle.radius, _sector.position2D, out lineR, out lineL);
             Gizmos.color = Color.red;
             Gizmos.DrawLine(_sector.position, new Vector3(lineR.x, _testCircle.position.y, lineR.y));
             Gizmos.color = Color.green;
@@ -394,21 +394,21 @@ public class BoundCheckWindow : EditorWindow
                 switch (_testMode)
                 {
                     case TestMode.Dot2D:
-                        EditorGUILayout.LabelField("In ?", (isIn = ZKit.Math.Geometry.CollisionDetect2DDot(_box, new Vector2(_currentClickedPos.x, _currentClickedPos.z))) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = Util.CollisionDetect2DDot(_box, new Vector2(_currentClickedPos.x, _currentClickedPos.z))) ? "Yes" : "No");
                         break;
                     case TestMode.Line2D:
-                        EditorGUILayout.LabelField("In ?", (isIn = ZKit.Math.Geometry.CollisionDetect2DLine(_box, new Vector2(_currentClickedPos.x, _currentClickedPos.z), new Vector2(_prevClickedPos.x, _prevClickedPos.z))) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = Util.CollisionDetect2DLine(_box, new Vector2(_currentClickedPos.x, _currentClickedPos.z), new Vector2(_prevClickedPos.x, _prevClickedPos.z))) ? "Yes" : "No");
                         break;
                     case TestMode.Ray2D:
                         Vector2 dir = new Vector2(_prevClickedPos.x, _prevClickedPos.z) - new Vector2(_currentClickedPos.x, _currentClickedPos.z);
-                        EditorGUILayout.LabelField("In ?", (isIn = ZKit.Math.Geometry.CollisionDetect2DRay(_box, new Vector2(_currentClickedPos.x, _currentClickedPos.z), dir)) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = Util.CollisionDetect2DRay(_box, new Vector2(_currentClickedPos.x, _currentClickedPos.z), dir)) ? "Yes" : "No");
                         break;
                     case TestMode.Box2D:
                     case TestMode.LerpBox2D:
-                        EditorGUILayout.LabelField("In ?", (isIn = ZKit.Math.Geometry.CollisionDetect2DBox(_box, _testBox)) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = Util.CollisionDetect2DBox(_box, _testBox)) ? "Yes" : "No");
                         break;
                     case TestMode.Circle2D:
-                        EditorGUILayout.LabelField("In ?", (isIn = ZKit.Math.Geometry.CollisionDetect2DCircle(_box, _testCircle)) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = Util.CollisionDetect2DCircle(_box, _testCircle)) ? "Yes" : "No");
                         break;
                 }
                 break;
@@ -416,21 +416,21 @@ public class BoundCheckWindow : EditorWindow
                 switch (_testMode)
                 {
                     case TestMode.Dot2D:
-                        EditorGUILayout.LabelField("In ?", (isIn = ZKit.Math.Geometry.CollisionDetect2DDot(_cube.Get2Dbox(), new Vector2(_currentClickedPos.x, _currentClickedPos.z))) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = Util.CollisionDetect2DDot(_cube.Get2Dbox(), new Vector2(_currentClickedPos.x, _currentClickedPos.z))) ? "Yes" : "No");
                         break;
                     case TestMode.Line2D:
-                        EditorGUILayout.LabelField("In ?", (isIn = ZKit.Math.Geometry.CollisionDetect2DLine(_cube.Get2Dbox(), new Vector2(_currentClickedPos.x, _currentClickedPos.z), new Vector2(_prevClickedPos.x, _prevClickedPos.z))) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = Util.CollisionDetect2DLine(_cube.Get2Dbox(), new Vector2(_currentClickedPos.x, _currentClickedPos.z), new Vector2(_prevClickedPos.x, _prevClickedPos.z))) ? "Yes" : "No");
                         break;
                     case TestMode.Ray2D:
                         Vector2 dir = new Vector2(_prevClickedPos.x, _prevClickedPos.z) - new Vector2(_currentClickedPos.x, _currentClickedPos.z);
-                        EditorGUILayout.LabelField("In ?", (isIn = ZKit.Math.Geometry.CollisionDetect2DRay(_cube.Get2Dbox(), new Vector2(_currentClickedPos.x, _currentClickedPos.z), dir)) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = Util.CollisionDetect2DRay(_cube.Get2Dbox(), new Vector2(_currentClickedPos.x, _currentClickedPos.z), dir)) ? "Yes" : "No");
                         break;
                     case TestMode.Box2D:
                     case TestMode.LerpBox2D:
-                        EditorGUILayout.LabelField("In ?", (isIn = ZKit.Math.Geometry.CollisionDetect2DBox(_cube.Get2Dbox(), _testBox)) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = Util.CollisionDetect2DBox(_cube.Get2Dbox(), _testBox)) ? "Yes" : "No");
                         break;
                     case TestMode.Circle2D:
-                        EditorGUILayout.LabelField("In ?", (isIn = ZKit.Math.Geometry.CollisionDetect2DCircle(_cube.Get2Dbox(), _testCircle)) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = Util.CollisionDetect2DCircle(_cube.Get2Dbox(), _testCircle)) ? "Yes" : "No");
                         break;
                 }
                 break;
@@ -438,24 +438,24 @@ public class BoundCheckWindow : EditorWindow
                 switch (_testMode)
                 {
                     case TestMode.Dot2D:
-                        EditorGUILayout.LabelField("In ?", (isIn = ZKit.Math.Geometry.CollisionDetect2DDot(_circle, new Vector2(_currentClickedPos.x, _currentClickedPos.z))) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = Util.CollisionDetect2DDot(_circle, new Vector2(_currentClickedPos.x, _currentClickedPos.z))) ? "Yes" : "No");
                         break;
                     case TestMode.Line2D:
-                        EditorGUILayout.LabelField("In ?", (isIn = ZKit.Math.Geometry.CollisionDetect2DLine(_circle, new Vector2(_currentClickedPos.x, _currentClickedPos.z), new Vector2(_prevClickedPos.x, _prevClickedPos.z))) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = Util.CollisionDetect2DLine(_circle, new Vector2(_currentClickedPos.x, _currentClickedPos.z), new Vector2(_prevClickedPos.x, _prevClickedPos.z))) ? "Yes" : "No");
                         break;
                     case TestMode.Ray2D:
                         Vector2 dir = new Vector2(_prevClickedPos.x, _prevClickedPos.z) - new Vector2(_currentClickedPos.x, _currentClickedPos.z);
-                        EditorGUILayout.LabelField("In ?", (isIn = ZKit.Math.Geometry.CollisionDetect2DRay(_circle, new Vector2(_currentClickedPos.x, _currentClickedPos.z), dir)) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = Util.CollisionDetect2DRay(_circle, new Vector2(_currentClickedPos.x, _currentClickedPos.z), dir)) ? "Yes" : "No");
                         break;
                     case TestMode.Box2D:
                     case TestMode.LerpBox2D:
-                        EditorGUILayout.LabelField("In ?", (isIn = ZKit.Math.Geometry.CollisionDetect2DBox(_circle, _testBox)) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = Util.CollisionDetect2DBox(_circle, _testBox)) ? "Yes" : "No");
                         break;
                     case TestMode.Circle2D:
-                        EditorGUILayout.LabelField("In ?", (isIn = ZKit.Math.Geometry.CollisionDetect2DCircle(_circle, _testCircle)) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = Util.CollisionDetect2DCircle(_circle, _testCircle)) ? "Yes" : "No");
                         break;
                     case TestMode.Sector2D:
-                        EditorGUILayout.LabelField("In ?", (isIn = ZKit.Math.Geometry.CollisionDetect2DSector(_circle, _testSector)) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = Util.CollisionDetect2DSector(_circle, _testSector)) ? "Yes" : "No");
                         break;
                 }
                 break;
@@ -463,24 +463,24 @@ public class BoundCheckWindow : EditorWindow
                 switch (_testMode)
                 {
                     case TestMode.Dot2D:
-                        EditorGUILayout.LabelField("In ?", (isIn = ZKit.Math.Geometry.CollisionDetect2DDot(_capsule.GetCircle(), new Vector2(_currentClickedPos.x, _currentClickedPos.z))) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = Util.CollisionDetect2DDot(_capsule.GetCircle(), new Vector2(_currentClickedPos.x, _currentClickedPos.z))) ? "Yes" : "No");
                         break;
                     case TestMode.Line2D:
-                        EditorGUILayout.LabelField("In ?", (isIn = ZKit.Math.Geometry.CollisionDetect2DLine(_capsule.GetCircle(), new Vector2(_currentClickedPos.x, _currentClickedPos.z), new Vector2(_prevClickedPos.x, _prevClickedPos.z))) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = Util.CollisionDetect2DLine(_capsule.GetCircle(), new Vector2(_currentClickedPos.x, _currentClickedPos.z), new Vector2(_prevClickedPos.x, _prevClickedPos.z))) ? "Yes" : "No");
                         break;
                     case TestMode.Ray2D:
                         Vector2 dir = new Vector2(_prevClickedPos.x, _prevClickedPos.z) - new Vector2(_currentClickedPos.x, _currentClickedPos.z);
-                        EditorGUILayout.LabelField("In ?", (isIn = ZKit.Math.Geometry.CollisionDetect2DRay(_capsule.GetCircle(), new Vector2(_currentClickedPos.x, _currentClickedPos.z), dir)) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = Util.CollisionDetect2DRay(_capsule.GetCircle(), new Vector2(_currentClickedPos.x, _currentClickedPos.z), dir)) ? "Yes" : "No");
                         break;
                     case TestMode.Box2D:
                     case TestMode.LerpBox2D:
-                        EditorGUILayout.LabelField("In ?", (isIn = ZKit.Math.Geometry.CollisionDetect2DBox(_capsule.GetCircle(), _testBox)) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = Util.CollisionDetect2DBox(_capsule.GetCircle(), _testBox)) ? "Yes" : "No");
                         break;
                     case TestMode.Circle2D:
-                        EditorGUILayout.LabelField("In ?", (isIn = ZKit.Math.Geometry.CollisionDetect2DCircle(_capsule.GetCircle(), _testCircle)) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = Util.CollisionDetect2DCircle(_capsule.GetCircle(), _testCircle)) ? "Yes" : "No");
                         break;
                     case TestMode.Sector2D:
-                        EditorGUILayout.LabelField("In ?", (isIn = ZKit.Math.Geometry.CollisionDetect2DSector(_capsule.GetCircle(), _testSector)) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = Util.CollisionDetect2DSector(_capsule.GetCircle(), _testSector)) ? "Yes" : "No");
                         break;
                 }
                 break;
@@ -488,19 +488,19 @@ public class BoundCheckWindow : EditorWindow
                 switch (_testMode)
                 {
                     case TestMode.Dot2D:
-                        EditorGUILayout.LabelField("In ?", (isIn = ZKit.Math.Geometry.CollisionDetect2DSector(new Vector2(_currentClickedPos.x, _currentClickedPos.z), _sector)) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = Util.CollisionDetect2DSector(new Vector2(_currentClickedPos.x, _currentClickedPos.z), _sector)) ? "Yes" : "No");
                         break;
                     case TestMode.Line2D:
-                        EditorGUILayout.LabelField("In ?", (isIn = ZKit.Math.Geometry.CollisionDetect2DSector(new Vector2(_currentClickedPos.x, _currentClickedPos.z), new Vector2(_prevClickedPos.x, _prevClickedPos.z), _sector)) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = Util.CollisionDetect2DSector(new Vector2(_currentClickedPos.x, _currentClickedPos.z), new Vector2(_prevClickedPos.x, _prevClickedPos.z), _sector)) ? "Yes" : "No");
                         break;
                     case TestMode.Box2D:
-                        EditorGUILayout.LabelField("In ?", (isIn = ZKit.Math.Geometry.CollisionDetect2DSector(_testBox, _sector)) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = Util.CollisionDetect2DSector(_testBox, _sector)) ? "Yes" : "No");
                         break;
                     case TestMode.Circle2D:
-                        EditorGUILayout.LabelField("In ?", (isIn = ZKit.Math.Geometry.CollisionDetect2DSector(_testCircle, _sector)) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = Util.CollisionDetect2DSector(_testCircle, _sector)) ? "Yes" : "No");
                         break;
                     case TestMode.Sector2D:
-                        EditorGUILayout.LabelField("In ?", (isIn = ZKit.Math.Geometry.CollisionDetect2DSector(_testSector, _sector)) ? "Yes" : "No");
+                        EditorGUILayout.LabelField("In ?", (isIn = Util.CollisionDetect2DSector(_testSector, _sector)) ? "Yes" : "No");
                         break;
                 }
                 break;
