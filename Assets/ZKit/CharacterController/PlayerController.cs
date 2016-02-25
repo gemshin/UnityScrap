@@ -27,8 +27,8 @@ public class PlayerController : MonoBehaviour
     Rigidbody _rigidbody;
     CapsuleCollider _capsule;
 
-    float _capsuleHeight;
-    Vector3 _capsuleCenter;
+    //float _capsuleHeight;
+    //Vector3 _capsuleCenter;
 
     Vector3 _moveTarget;
     int _pathMask = 0;
@@ -44,8 +44,8 @@ public class PlayerController : MonoBehaviour
         _animator = GetComponent<Animator>();
         _rigidbody = GetComponent<Rigidbody>();
         _capsule = GetComponent<CapsuleCollider>();
-        _capsuleHeight = _capsule.height;
-        _capsuleCenter = _capsule.center;
+        //_capsuleHeight = _capsule.height;
+        //_capsuleCenter = _capsule.center;
 
         _rigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ;
         _moveTarget = transform.position;
@@ -62,9 +62,10 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            _turnAmount = 0f;
-            _forwardAmount = 0f;
-            UpdateAnimator(Vector3.zero);
+            //_turnAmount = 0f;
+            //_forwardAmount = 0f;
+            //UpdateAnimator(Vector3.zero);
+            MoveDirection(Vector3.zero);
         }
     }
 

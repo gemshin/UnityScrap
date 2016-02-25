@@ -43,7 +43,7 @@ namespace ZKit
             }
         }
 
-        protected void FixedUpdate()
+        protected virtual void FixedUpdate()
         {
             if (m_UpdateType == UpdateType.FixedUpdate)
             {
@@ -51,7 +51,7 @@ namespace ZKit
             }
         }
 
-        protected void LateUpdate()
+        protected virtual void LateUpdate()
         {
             if (m_UpdateType == UpdateType.LateUpdate)
             {
@@ -59,7 +59,7 @@ namespace ZKit
             }
         }
 
-        public void ManualUpdate()
+        public virtual void ManualUpdate()
         {
             if (m_UpdateType == UpdateType.ManualUpdate)
             {

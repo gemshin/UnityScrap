@@ -8,7 +8,7 @@ namespace ZKit
     {
         private float m_zoom = 0.1f;
 
-        protected virtual void Awake()
+        protected override void Awake()
         {
             base.Awake();
             m_Cam.LookAt(transform.position + Vector3.down);
@@ -23,7 +23,7 @@ namespace ZKit
             transform.position = Vector3.Lerp( transform.position + (Vector3.up * m_zoom), Target.position, deltaTime*10f);
         }
 
-        void FixedUpdate()
+        protected override void FixedUpdate()
         {
             base.FixedUpdate();
         }

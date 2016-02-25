@@ -48,7 +48,7 @@
             return new UnityEngine.Vector2(x, y);
         }
 
-        public UnityEngine.Vector3 Tovec3(float centerValue = 0)
+        public UnityEngine.Vector3 ToVec3(float centerValue = 0)
         {
             return new UnityEngine.Vector3(x, centerValue, y);
         }

@@ -20,12 +20,12 @@ public static class Extensions
 
     public static string ToStringWithoutBracket(this Vector2 v)
     {
-        return v.ToString("F2").Replace("(", "").Replace(")", "");
+        return v.ToString("F3").Replace("(", "").Replace(")", "");
     }
 
     public static string ToStringWithoutBracket(this Vector3 v)
     {
-        return v.ToString("F2").Replace("(", "").Replace(")", "");
+        return v.ToString("F3").Replace("(", "").Replace(")", "");
     }
 
     public static void SetPositionX(this Transform t, float x)
