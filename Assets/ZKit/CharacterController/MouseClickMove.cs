@@ -13,6 +13,14 @@ public class MouseClickMove : MonoBehaviour
     {
         _cam = Camera.main;
         _playerController = GetComponent<PlayerController>();
+        if( _clickObj == null)
+        {
+            _clickObj = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            _clickObj.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
+            //_clickObj.SetActive(false);
+            BoxCollider bc = _clickObj.GetComponent<BoxCollider>();
+            if( bc ) Destroy(bc);
+        }
 	}
 	
 	// Update is called once per frame
@@ -23,8 +31,10 @@ public class MouseClickMove : MonoBehaviour
             RaycastHit hit;
             if (Physics.Raycast(_cam.ScreenPointToRay(Input.mousePosition), out hit, Mathf.Infinity, LayerMask.GetMask("PATH")))
             {
-                if(_clickObj != null)
-                    _clickObj.transform.position = hit.point;
+                _clickObj.transform.position = hit.point;
+                //GameObject clickObj = Instantiate(_clickObj, hit.point, Quaternion.identity) as GameObject;
+                //clickObj.SetActive(true);
+                //Destroy(clickObj, 0.5f);
                 _playerController.MoveTo(hit.point);
             }
         }
