@@ -273,7 +273,7 @@ public class ScannerWindow : EditorWindow
             SceneView.lastActiveSceneView.Repaint();
     }
 
-    [DrawGizmo(GizmoType.NotSelected | GizmoType.Selected)]
+    [DrawGizmo(GizmoType.NotInSelectionHierarchy | GizmoType.Selected)]
     static void DrawGizmo(GizmoDummy dummy, GizmoType gizmoType)
     {
         #region Draw Cell Grid

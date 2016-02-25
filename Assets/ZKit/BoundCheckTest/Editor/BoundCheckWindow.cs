@@ -171,7 +171,7 @@ public class BoundCheckWindow : EditorWindow
         sceneView.Repaint();
     }
 
-    [DrawGizmo(GizmoType.NotSelected | GizmoType.Selected)]
+    [DrawGizmo(GizmoType.NotInSelectionHierarchy | GizmoType.Selected)]
     static void DrawGizmo(GizmoDummy dummy, GizmoType gizmoType)
     {
         Gizmos.color = Color.cyan;

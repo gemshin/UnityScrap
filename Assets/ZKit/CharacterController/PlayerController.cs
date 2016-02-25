@@ -1,108 +1,142 @@
 ﻿using UnityEngine;
 using System.Collections;
-using System.Collections.Generic;
-using ZKit.PathFinder;
 
-namespace ZKit
+[RequireComponent(typeof(Rigidbody))]
+[RequireComponent(typeof(Animator))]
+[RequireComponent(typeof(CapsuleCollider))]
+public class PlayerController : MonoBehaviour
 {
-    public class PlayerController : MonoBehaviour
+    const float k_half = 0.5f;
+
+    [SerializeField]
+    float _movingTurnSpeed = 360;
+    [SerializeField]
+    float _stationaryTurnSpeed = 180;
+    [SerializeField]
+    float _moveSpeedMultiplier = 6f;
+    [SerializeField]
+    float _animSpeedMultiplier = 1f;
+    [SerializeField]
+    string[] _pathLayerName;
+    [SerializeField]
+    float _groundCheckDistance = 0.1f;
+    //[SerializeField]
+    //float _runCycleLegOffset = 0.2f; //specific to the character in sample assets, will need to be modified to work with others
+
+    Animator _animator;
+    Rigidbody _rigidbody;
+    CapsuleCollider _capsule;
+
+    float _capsuleHeight;
+    Vector3 _capsuleCenter;
+
+    Vector3 _moveTarget;
+    int _pathMask = 0;
+
+    float _turnAmount;
+    float _forwardAmount;
+
+    bool _isGrounded;
+    Vector3 _groundNormal;
+
+    void Start()
     {
-        public float _speed = 6f;
+        _animator = GetComponent<Animator>();
+        _rigidbody = GetComponent<Rigidbody>();
+        _capsule = GetComponent<CapsuleCollider>();
+        _capsuleHeight = _capsule.height;
+        _capsuleCenter = _capsule.center;
 
-        Animator _anim;
-        Rigidbody _rig;
-        CharacterController _cc;
-        int _pathMask;
-        float _camRayLength = 10000f;
+        _rigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ;
+        _moveTarget = transform.position;
+        if (_pathLayerName.Length > 0)
+            _pathMask = LayerMask.GetMask(_pathLayerName);
+    }
 
-        Vector3 _moveTarget;
-        Vector3 _dirTarget;
-
-        bool _aniFlgMove = false;
-
-        List<Vector3> _path;
-        int _pathIndex = 0;
-
-        void Awake()
+    void FixedUpdate()
+    {
+        Vector3 direction = _moveTarget - transform.position;
+        if (direction.magnitude > 0.2f)
         {
-            _pathMask = LayerMask.GetMask("PATH");
-            _anim = GetComponent<Animator>();
-            _rig = GetComponent<Rigidbody>();
-            _cc = GetComponent<CharacterController>();
-            _moveTarget = transform.position;
-            _dirTarget = Vector3.forward;
+            MoveDirection(direction.normalized);
         }
-
-        void OnDrawGizmos()
+        else
         {
-            if ( _path != null && _path.Count > 1)
-            {
-                Gizmos.color = Color.red;
-                Gizmos.DrawLine(transform.position, _path[0]);
-                for (int i = 0; i < _path.Count - 1; ++i)
-                {
-                    Gizmos.DrawLine(_path[i], _path[i + 1]);
-                }
-            }
+            _turnAmount = 0f;
+            _forwardAmount = 0f;
+            UpdateAnimator(Vector3.zero);
         }
+    }
 
-        void FixedUpdate()
+    void OnAnimatorMove()
+    {
+        if (_isGrounded && Time.deltaTime > 0)
         {
-            if (Input.GetMouseButton(0))
-            {
-                Ray camRay = Camera.main.ScreenPointToRay(Input.mousePosition);
-                RaycastHit pathHit;
+            Vector3 v = (_animator.deltaPosition * _moveSpeedMultiplier) / Time.deltaTime;
 
-                if (Physics.Raycast(camRay, out pathHit, _camRayLength, _pathMask))
-                {
-                    _path = JPS.Instance.Find(transform.position, pathHit.point);
-                    if (_path.Count > 0)
-                    {
-                        //MoveTo(_path[0]);
-                        _moveTarget = _path[_pathIndex = 0];
-                    }
-                }
-            }
-
-            Vector3 m = _moveTarget - transform.position; m.y = 0f;
-            if (m.magnitude > 0.2f)
-            {
-                m.Normalize();
-                Move(m);
-                Turning(m);
-                _aniFlgMove = true;
-            }
-            else
-            {
-                if (_path != null && _pathIndex + 1 < _path.Count)
-                {
-                    _moveTarget = _path[++_pathIndex];
-                }
-                else
-                    _aniFlgMove = false;
-            }
-
-            Animating();
+            v.y = _rigidbody.velocity.y;
+            _rigidbody.velocity = v;
         }
+    }
 
-        void Move(Vector3 direction)
+    void UpdateAnimator(Vector3 direction)
+    {
+        // update the animator parameters
+        _animator.SetFloat("Forward", _forwardAmount, 0.1f, Time.deltaTime);
+        _animator.SetFloat("Turn", _turnAmount, 0.1f, Time.deltaTime);
+        _animator.SetBool("OnGround", _isGrounded);
+
+        if (_isGrounded && direction.magnitude > 0)
         {
-            _cc.SimpleMove(direction * _speed);
+            _animator.speed = _animSpeedMultiplier;
         }
-
-        void Turning(Vector3 direction)
+        else
         {
-            _rig.MoveRotation(Quaternion.LookRotation(direction));
+            _animator.speed = 1;
         }
+    }
 
-        void Animating()
-        {
-            _anim.SetBool("IsWalking", _aniFlgMove);
-        }
+    void MoveDirection(Vector3 direction)
+    {
+        if (direction.magnitude > 1f) direction.Normalize();
+        direction = transform.InverseTransformDirection(direction);
+        CheckGroundStatus();
+        direction = Vector3.ProjectOnPlane(direction, _groundNormal);
+        _turnAmount = Mathf.Atan2(direction.x, direction.z);
+        _forwardAmount = direction.z;
 
-        public void MoveTo(Vector3 targetPos)
+        ApplyExtraTurnRotation();
+        UpdateAnimator(direction);
+    }
+
+    void ApplyExtraTurnRotation()
+    {
+        float turnSpeed = Mathf.Lerp(_stationaryTurnSpeed, _movingTurnSpeed, _forwardAmount);
+        transform.Rotate(0, _turnAmount * turnSpeed * Time.deltaTime, 0);
+    }
+
+    void CheckGroundStatus()
+    {
+        RaycastHit hitInfo;
+#if UNITY_EDITOR
+        Debug.DrawLine(transform.position + (Vector3.up * 0.1f), transform.position + (Vector3.up * 0.1f) + (Vector3.down * _groundCheckDistance), Color.red);
+#endif
+        if (Physics.Raycast(transform.position + (Vector3.up * 0.1f), Vector3.down, out hitInfo, _groundCheckDistance))
         {
-            _moveTarget = targetPos;
+            _isGrounded = true;
+            _groundNormal = hitInfo.normal;
+            _animator.applyRootMotion = true;
         }
+        else
+        {
+            _isGrounded = false;
+            _groundNormal = Vector3.up;
+            _animator.applyRootMotion = false;
+        }
+    }
+
+    public void MoveTo(Vector3 targetPosition)
+    {
+        _moveTarget = targetPosition;
     }
 }
