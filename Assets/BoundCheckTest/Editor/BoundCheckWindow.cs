@@ -25,6 +25,7 @@ public class BoundCheckWindow : EditorWindow
         Sector2D,
         None
     }
+    private static bool _enableWindow = false;
     private static BoundType _boundType = BoundType.Sector;
     private static TestMode _testMode = TestMode.Circle2D;
 
@@ -88,11 +89,13 @@ public class BoundCheckWindow : EditorWindow
     {
         GizmoDummy.Init();
         SceneView.onSceneGUIDelegate += OnSceneGUI;
+        _enableWindow = true;
     }
 
     private void OnDisable()
     {
         SceneView.onSceneGUIDelegate -= OnSceneGUI;
+        _enableWindow = false;
     }
 
     private void OnSceneGUI(SceneView sceneView)
@@ -174,6 +177,7 @@ public class BoundCheckWindow : EditorWindow
     [DrawGizmo(GizmoType.NotInSelectionHierarchy | GizmoType.Selected)]
     static void DrawGizmo(GizmoDummy dummy, GizmoType gizmoType)
     {
+        if (!_enableWindow) return;
         Gizmos.color = Color.cyan;
 
         switch (_boundType)
