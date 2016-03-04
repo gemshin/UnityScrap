@@ -559,7 +559,7 @@ public class ScannerWindow : EditorWindow
         heightLimit.InnerText = cells.HeightLimit.ToString();
         cellInfo.AppendChild(heightLimit);
         XmlNode startPos = doc.CreateElement(STARTPOS);
-        startPos.InnerText = cells.StartingPoint.ToStringWithoutBracket();
+        startPos.InnerText = cells.StartingPoint.ToStringNoBracket();
         cellInfo.AppendChild(startPos);
         XmlNode width = doc.CreateElement(CELLWIDTH);
         width.InnerText = cells.CountX.ToString();
