@@ -1,9 +1,8 @@
 ﻿using UnityEngine;
-using System.Collections;
 
-namespace ZKit.Math.Geometry.TwoD
+namespace ZKit.Math.Geometry
 {
-    public static class Collision
+    public static class Collision2D
     {
         /// <summary>
         /// 두 선의 교차 여부와 교차지점을 구한다.
@@ -47,7 +46,7 @@ namespace ZKit.Math.Geometry.TwoD
         /// <param name="point">점 좌표</param>
         /// <param name="tangentR">점기준 우측 외접선</param>
         /// <param name="tangentL">점기준 좌측 외접선</param>
-        public static void GetExternalTangentOnCircle(Vector2 circle_position, float circle_radius, Vector2 point, out Vector2 tangentR, out Vector2 tangentL)
+        public static void GetExTangentOnCircle(Vector2 circle_position, float circle_radius, Vector2 point, out Vector2 tangentR, out Vector2 tangentL)
         {
             Vector2 pointSpaceCircle = circle_position - point;
             float len = pointSpaceCircle.magnitude;
@@ -58,14 +57,15 @@ namespace ZKit.Math.Geometry.TwoD
             tangentL = circle_position + new Vector2(-Mathf.Sin(circleAng + tanAng), Mathf.Cos(circleAng + tanAng)) * circle_radius;
         }
         /// <summary>
-        /// 원의 접선 각도를 구한다. 기준은 (0,1)
+        /// 원의 외접선 각도를 구한다. 기준은 (0,1)
         /// </summary>
-        /// <param name="circle_position"></param>
-        /// <param name="circle_radius"></param>
-        /// <param name="point"></param>
-        /// <param name="tanRadR"></param>
-        /// <param name="tanRadL"></param>
-        public static void GetTangentAngleOnCircle(Vector2 circle_position, float circle_radius, Vector2 point, out float tanRadR, out float tanRadL, bool halfLimit = false)
+        /// <param name="circle_position">윈의 위치</param>
+        /// <param name="circle_radius">원의 반지름</param>
+        /// <param name="point">점 좌표</param>
+        /// <param name="tanRadR">점기준 우측 외접선 각도</param>
+        /// <param name="tanRadL">점기준 좌측 외접선 각도</param>
+        /// <param name="halfLimit"></param>
+        public static void GetExTangentAngleOnCircle(Vector2 circle_position, float circle_radius, Vector2 point, out float tanRadR, out float tanRadL, bool halfLimit = false)
         {
             Vector2 pointSpaceCircle = circle_position - point;
             float len = pointSpaceCircle.magnitude;
@@ -319,7 +319,7 @@ namespace ZKit.Math.Geometry.TwoD
             sectorSpaceCircle.y = y;
 
             float tanR, tanL;
-            GetTangentAngleOnCircle(sectorSpaceCircle, circle.radius, Vector2.zero, out tanR, out tanL, true);
+            GetExTangentAngleOnCircle(sectorSpaceCircle, circle.radius, Vector2.zero, out tanR, out tanL, true);
 
             if (float.IsNaN(tanR) || float.IsNaN(tanL)) return true;
 

@@ -1,8 +1,7 @@
-﻿using UnityEngine;
-using System.Collections;
+﻿using System.Collections;
 using System.Reflection;
 using System;
-
+using UnityEngine;
 using ZKit;
 using ZKit.PathFinder;
 
@@ -80,7 +79,7 @@ public class PackCellData : IEnumerable//, IEnumerator
         return index;
     }
 
-    #region IEnumerable 구현
+#region IEnumerable 구현
     public IEnumerator GetEnumerator()
     {
         foreach (var element in _cellDatas)
@@ -88,7 +87,7 @@ public class PackCellData : IEnumerable//, IEnumerator
             yield return element;
         }
     }
-    #endregion
+#endregion
 
 }
 
@@ -125,9 +124,9 @@ public class DataCon
         }
     }
 
-    #region CellData
+#region CellData
     private PackCellData _cellDatas = new PackCellData();
     public PackCellData CellDatas { get { return _cellDatas; } }
-    #endregion
+#endregion
 
 }
