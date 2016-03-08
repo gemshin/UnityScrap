@@ -88,7 +88,7 @@ public static partial class UnityExtensions
 
     public static string ToHexString(this Color color)
     {
-        return ZKit.Math.Util.DecimalToHex32(color.ColorToInt());
+        return ZKit.Math.Misc.DecimalToHex32(color.ColorToInt());
     }
 
     public static string ToXmlColorString(this string message, Color color)

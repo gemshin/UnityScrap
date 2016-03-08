@@ -199,7 +199,7 @@ namespace ZKit.Math.Geometry
             return p;
         }
 
-        static public List<Point> BresenhamLine(Point p1, Point p2)
+        public static List<Point> BresenhamLine(Point p1, Point p2)
         {
             List<Point> ret = new List<Point>();
             Point dp = p2 - p1;
