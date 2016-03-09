@@ -9,13 +9,13 @@ public class CellLoader : MonoBehaviour
 {
     void Awake()
     {
-        LoadFromFile("Assets/Scenes/CellData/" + Application.loadedLevelName);
-        JPS.Instance.SetMap();
+        var cells = LoadFromFile("Assets/Scenes/CellData/" + Application.loadedLevelName);
+        JPS.Instance.SetMap(cells);
     }
 	
-    void LoadFromFile(string filePath)
+    PackCellData LoadFromFile(string filePath)
     {
-        var cells = DataCon.Instance.CellDatas;
+        PackCellData cells = new PackCellData();
         filePath = Path.ChangeExtension(filePath, ".cel");
         FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read);
         if (fs != null)
@@ -44,5 +44,6 @@ public class CellLoader : MonoBehaviour
             }
             fs.Close();
         }
+        return cells;
     }
 }

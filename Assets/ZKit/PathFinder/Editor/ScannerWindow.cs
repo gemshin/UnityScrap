@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEditor;
-using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
 
@@ -10,7 +9,6 @@ using System.IO;
 
 public class ScannerWindow : EditorWindow
 {
-
     #region PathFinder Debug Variable
     private static bool _showGrid = true;
     private static bool _showIndex = false;
@@ -30,6 +28,8 @@ public class ScannerWindow : EditorWindow
     private List<Point> _asPath = null;
     private List<Point> _jpsPath = null;
     #endregion
+
+    private static PackCellData _cells;
 
     #region A* TEST Variable
     private bool _testShowAsPath = false;
@@ -73,11 +73,13 @@ public class ScannerWindow : EditorWindow
     {
         GizmoDummy.Init();
         SceneView.onSceneGUIDelegate += OnSceneGUI;
+        _cells = new PackCellData();
     }
 
     private void OnDisable()
     {
         SceneView.onSceneGUIDelegate -= OnSceneGUI;
+        _cells = null;
     }
 
     private void OnSceneGUI(SceneView sceneView)
@@ -85,29 +87,28 @@ public class ScannerWindow : EditorWindow
         if (_testMode) HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
 
         if (DataCon.Instance.CellDatas.IsEmpty) return;
-        var cells = DataCon.Instance.CellDatas;
 
         #region Draw Map Bound
         Handles.color = Color.red;
         for (int y = 0; y < 3; ++y)
         {
-            Handles.DrawLine(new Vector3(cells.MapBound.xMax, y, cells.MapBound.yMax), new Vector3(cells.MapBound.xMin, y, cells.MapBound.yMax));
-            Handles.DrawLine(new Vector3(cells.MapBound.xMin, y, cells.MapBound.yMax), new Vector3(cells.MapBound.xMin, y, cells.MapBound.yMin));
-            Handles.DrawLine(new Vector3(cells.MapBound.xMin, y, cells.MapBound.yMin), new Vector3(cells.MapBound.xMax, y, cells.MapBound.yMin));
-            Handles.DrawLine(new Vector3(cells.MapBound.xMax, y, cells.MapBound.yMin), new Vector3(cells.MapBound.xMax, y, cells.MapBound.yMax));
+            Handles.DrawLine(new Vector3(_cells.MapBound.xMax, y, _cells.MapBound.yMax), new Vector3(_cells.MapBound.xMin, y, _cells.MapBound.yMax));
+            Handles.DrawLine(new Vector3(_cells.MapBound.xMin, y, _cells.MapBound.yMax), new Vector3(_cells.MapBound.xMin, y, _cells.MapBound.yMin));
+            Handles.DrawLine(new Vector3(_cells.MapBound.xMin, y, _cells.MapBound.yMin), new Vector3(_cells.MapBound.xMax, y, _cells.MapBound.yMin));
+            Handles.DrawLine(new Vector3(_cells.MapBound.xMax, y, _cells.MapBound.yMin), new Vector3(_cells.MapBound.xMax, y, _cells.MapBound.yMax));
         }
         #endregion
 
         if (_testMode && _testShowAClosedPoint)
         {
-            for (int y = 0; y < cells.CountY; ++y)
+            for (int y = 0; y < _cells.CountY; ++y)
             {
-                for (int x = 0; x < cells.CountX; ++x)
+                for (int x = 0; x < _cells.CountX; ++x)
                 {
                     if (AStar.Instance._map[y, x].F != 0)
                     {
                         Handles.color = Color.cyan;
-                        Handles.DotCap(0, cells.GetPosVec3(cells[y, x].Index, cells[y, x].Height), Quaternion.identity, 0.4f);
+                        Handles.DotCap(0, _cells.GetPosVec3(_cells[y, x].Index, _cells[y, x].Height), Quaternion.identity, 0.4f);
                     }
                 }
             }
@@ -123,7 +124,7 @@ public class ScannerWindow : EditorWindow
                     if (JPS.Instance._closedList[i] != null)
                     {
                         Handles.color = Color.magenta;
-                        Handles.DotCap(0, cells.GetPosVec3(JPS.Instance._closedList[i].Index, JPS.Instance._closedList[i].Height), Quaternion.identity, 0.3f);
+                        Handles.DotCap(0, _cells.GetPosVec3(JPS.Instance._closedList[i].Index, JPS.Instance._closedList[i].Height), Quaternion.identity, 0.3f);
                     }
                 }
             }
@@ -136,7 +137,7 @@ public class ScannerWindow : EditorWindow
         //    foreach (Node n in JPS.Instance.TEST)
         //    {
         //        Handles.color = Color.blue;
-        //        Handles.DotCap(0, cells.GetPosVec3(n.Index, n.Height), Quaternion.identity, 0.3f);
+        //        Handles.DotCap(0, _cells.GetPosVec3(n.Index, n.Height), Quaternion.identity, 0.3f);
         //    }
         //} 
         #endregion
@@ -147,18 +148,18 @@ public class ScannerWindow : EditorWindow
             GUIStyle style = new GUIStyle();
             style.normal.textColor = Color.white;
             style.alignment = TextAnchor.UpperCenter;
-            for (int y = 0; y < cells.CountY; ++y)
+            for (int y = 0; y < _cells.CountY; ++y)
             {
-                for (int x = 0; x < cells.CountX; ++x)
+                for (int x = 0; x < _cells.CountX; ++x)
                 {
-                    if (cells[y, x].Type == CellType.Normal)
+                    if (_cells[y, x].Type == CellType.Normal)
                     {
                         // 퍼포먼스를 위해 가까운것만 그리자.
-                        if (Vector3.Distance(cells.GetPosVec3(cells[y, x].Index, cells[y, x].Height), sceneView.camera.transform.position) < _viewDistance)
+                        if (Vector3.Distance(_cells.GetPosVec3(_cells[y, x].Index, _cells[y, x].Height), sceneView.camera.transform.position) < _viewDistance)
                         {
                             string label = "";
                             if( _showIndex )
-                                label += string.Format("{0}:{1}", (cells.CountX * y + x), cells[y, x].Index.ToString());
+                                label += string.Format("{0}:{1}", (_cells.CountX * y + x), _cells[y, x].Index.ToString());
 
                             if (_testShowAValue && AStar.Instance._map[y, x].F != 0)
                                 label += string.Format("\nF={0}-G={1}-H={2}", AStar.Instance._map[y, x].F, AStar.Instance._map[y, x].G, AStar.Instance._map[y, x].H);
@@ -166,7 +167,7 @@ public class ScannerWindow : EditorWindow
                             if (_testShowJValue && JPS.Instance._map[y, x].F != 0)
                                 label += string.Format("\nF={0}-G={1}-H={2}", JPS.Instance._map[y, x].F, JPS.Instance._map[y, x].G, JPS.Instance._map[y, x].H);
 
-                            Handles.Label(cells.GetPosVec3(cells[y, x].Index, cells[y, x].Height), label, style);
+                            Handles.Label(_cells.GetPosVec3(_cells[y, x].Index, _cells[y, x].Height), label, style);
                         }
                     }
                 }
@@ -185,10 +186,10 @@ public class ScannerWindow : EditorWindow
                 RaycastHit hit;
                 if (Physics.Raycast(sceneView.camera.ScreenPointToRay(MousePos), out hit, 10000, (1 << 8)))
                 {
-                    _testClickedIndex = cells.GetNearIndex(hit.point);
-                    _asPath = AStar.Instance.Find(cells.GetNearIndex(_testAsHero), _testClickedIndex);
-                    //_jpsPath = PathFinder.JPS.Instance.Find(cells.GetNearIndex(_testJpsHero), _testClickedIndex);
-                    _jpsPath = JPS.Instance.Find(cells.GetNearIndex(_testAsHero), _testClickedIndex);
+                    _testClickedIndex = _cells.GetNearIndex(hit.point);
+                    _asPath = AStar.Instance.Find(_cells.GetNearIndex(_testAsHero), _testClickedIndex);
+                    //_jpsPath = PathFinder.JPS.Instance.Find(_cells.GetNearIndex(_testJpsHero), _testClickedIndex);
+                    _jpsPath = JPS.Instance.Find(_cells.GetNearIndex(_testAsHero), _testClickedIndex);
 
                     _testHeroCurIndex = 1;
                     _testHeroMoveTime = 0f;
@@ -203,11 +204,11 @@ public class ScannerWindow : EditorWindow
                 Handles.color = Color.red;
                 for (int i = 0; i < _asPath.Count; ++i)
                 {
-                    Vector3 point = cells.GetPosVec3(_asPath[i], cells[_asPath[i].y, _asPath[i].x].Height);
+                    Vector3 point = _cells.GetPosVec3(_asPath[i], _cells[_asPath[i].y, _asPath[i].x].Height);
                     Handles.DotCap(0, point, Quaternion.identity, 0.04f * HandleUtility.GetHandleSize(point));
 
                     if (i + 1 >= _asPath.Count) continue;
-                    Handles.DrawLine(point, cells.GetPosVec3(_asPath[i + 1], cells[_asPath[i + 1].y, _asPath[i + 1].x].Height));
+                    Handles.DrawLine(point, _cells.GetPosVec3(_asPath[i + 1], _cells[_asPath[i + 1].y, _asPath[i + 1].x].Height));
                 }
             }
 
@@ -216,18 +217,18 @@ public class ScannerWindow : EditorWindow
                 Handles.color = Color.yellow;
                 for (int i = 0; i < _jpsPath.Count; ++i)
                 {
-                    Vector3 point = cells.GetPosVec3(_jpsPath[i], cells[_jpsPath[i].y, _jpsPath[i].x].Height);
+                    Vector3 point = _cells.GetPosVec3(_jpsPath[i], _cells[_jpsPath[i].y, _jpsPath[i].x].Height);
                     Handles.DotCap(0, point, Quaternion.identity, 0.04f * HandleUtility.GetHandleSize(point));
 
                     if (i + 1 >= _jpsPath.Count) continue;
-                    Handles.DrawLine(point, cells.GetPosVec3(_jpsPath[i + 1], cells[_jpsPath[i + 1].y, _jpsPath[i + 1].x].Height));
+                    Handles.DrawLine(point, _cells.GetPosVec3(_jpsPath[i + 1], _cells[_jpsPath[i + 1].y, _jpsPath[i + 1].x].Height));
                 }
             }
             #endregion
 
             #region Draw Destination Point
             Handles.color = Color.green;
-            Vector3 clickedPoint = cells.GetPosVec3(_testClickedIndex, cells[_testClickedIndex.y, _testClickedIndex.x].Height + _gridGap);
+            Vector3 clickedPoint = _cells.GetPosVec3(_testClickedIndex, _cells[_testClickedIndex.y, _testClickedIndex.x].Height + _gridGap);
             Handles.DotCap(0, clickedPoint, Quaternion.identity, 0.1f * HandleUtility.GetHandleSize(clickedPoint));
             #endregion
         }
@@ -249,20 +250,16 @@ public class ScannerWindow : EditorWindow
 
             if (_asPath != null && _testHeroCurIndex < _asPath.Count)
             {
-                var cells = DataCon.Instance.CellDatas;
-
-                Vector3 f = cells.GetPosVec3(_asPath[_testHeroCurIndex - 1], cells[_asPath[_testHeroCurIndex - 1].y, _asPath[_testHeroCurIndex - 1].x].Height);
-                Vector3 t = cells.GetPosVec3(_asPath[_testHeroCurIndex], cells[_asPath[_testHeroCurIndex].y, _asPath[_testHeroCurIndex].x].Height);
+                Vector3 f = _cells.GetPosVec3(_asPath[_testHeroCurIndex - 1], _cells[_asPath[_testHeroCurIndex - 1].y, _asPath[_testHeroCurIndex - 1].x].Height);
+                Vector3 t = _cells.GetPosVec3(_asPath[_testHeroCurIndex], _cells[_asPath[_testHeroCurIndex].y, _asPath[_testHeroCurIndex].x].Height);
 
                 _testAsHero = Vector3.Lerp(f, t, _testHeroMoveTime);
             }
 
             //if (_jpsPath != null && _testHeroCurIndex < _jpsPath.Count)
             //{
-            //    var cells = DataCon.Instance.CellDatas;
-
-            //    Vector3 f = cells.GetPosVec3(_jpsPath[_testHeroCurIndex - 1], cells[_jpsPath[_testHeroCurIndex - 1].y, _jpsPath[_testHeroCurIndex - 1].x].Height);
-            //    Vector3 t = cells.GetPosVec3(_jpsPath[_testHeroCurIndex], cells[_jpsPath[_testHeroCurIndex].y, _jpsPath[_testHeroCurIndex].x].Height);
+            //    Vector3 f = _cells.GetPosVec3(_jpsPath[_testHeroCurIndex - 1], _cells[_jpsPath[_testHeroCurIndex - 1].y, _jpsPath[_testHeroCurIndex - 1].x].Height);
+            //    Vector3 t = _cells.GetPosVec3(_jpsPath[_testHeroCurIndex], _cells[_jpsPath[_testHeroCurIndex].y, _jpsPath[_testHeroCurIndex].x].Height);
 
             //    _testJpsHero = Vector3.Lerp(f, t, _testHeroMoveTime);
             //}
@@ -279,71 +276,70 @@ public class ScannerWindow : EditorWindow
         #region Draw Cell Grid
         if (_showGrid)
         {
-            var cells = DataCon.Instance.CellDatas;
-            for (int y = 0; y < cells.CountY; ++y)
+            for (int y = 0; y < _cells.CountY; ++y)
             {
-                for (int x = 0; x < cells.CountX; ++x)
+                for (int x = 0; x < _cells.CountX; ++x)
                 {
                     Gizmos.color = Color.white;
-                    if (cells[y, x].Type != CellType.Normal)
+                    if (_cells[y, x].Type != CellType.Normal)
                         continue;
-                    CellData currentCell = cells[y, x];
+                    CellData currentCell = _cells[y, x];
                     // right
-                    if (cells.IsExist(x + 1, y))
+                    if (_cells.IsExist(x + 1, y))
                     {
-                        CellData nextCell = cells[y, x + 1];
+                        CellData nextCell = _cells[y, x + 1];
                         if (nextCell.Type == CellType.Normal)
                         {
-                            if (UnityEngine.Mathf.Abs(currentCell.Height - nextCell.Height) < cells.HeightLimit)
+                            if (UnityEngine.Mathf.Abs(currentCell.Height - nextCell.Height) < _cells.HeightLimit)
                             {
-                                Vector3 from = cells.GetPosVec3(new Point(x, y), currentCell.Height + _gridGap);
-                                Vector3 to = cells.GetPosVec3(new Point(x + 1, y), nextCell.Height + _gridGap);
+                                Vector3 from = _cells.GetPosVec3(new Point(x, y), currentCell.Height + _gridGap);
+                                Vector3 to = _cells.GetPosVec3(new Point(x + 1, y), nextCell.Height + _gridGap);
                                 Gizmos.DrawLine(from, to);
                             }
                         }
                     }
                     // up
-                    if (cells.IsExist(x, y + 1))
+                    if (_cells.IsExist(x, y + 1))
                     {
-                        CellData nextCell = cells[y + 1, x];
+                        CellData nextCell = _cells[y + 1, x];
                         if (nextCell.Type == CellType.Normal)
                         {
-                            if (UnityEngine.Mathf.Abs(currentCell.Height - nextCell.Height) < cells.HeightLimit)
+                            if (UnityEngine.Mathf.Abs(currentCell.Height - nextCell.Height) < _cells.HeightLimit)
                             {
-                                Vector3 from = cells.GetPosVec3(new Point(x, y), currentCell.Height + _gridGap);
-                                Vector3 to = cells.GetPosVec3(new Point(x, y + 1), nextCell.Height + _gridGap);
+                                Vector3 from = _cells.GetPosVec3(new Point(x, y), currentCell.Height + _gridGap);
+                                Vector3 to = _cells.GetPosVec3(new Point(x, y + 1), nextCell.Height + _gridGap);
                                 Gizmos.DrawLine(from, to);
                             }
                         }
                     }
                     Gizmos.color = Color.cyan;
                     // 퍼포먼스를 위해 가까운것만 그리자.
-                    if (Vector3.Distance(cells.GetPosVec3(currentCell.Index, currentCell.Height), SceneView.lastActiveSceneView.camera.transform.position) < _viewDistance)
+                    if (Vector3.Distance(_cells.GetPosVec3(currentCell.Index, currentCell.Height), SceneView.lastActiveSceneView.camera.transform.position) < _viewDistance)
                     {
                         // right up
-                        if (cells.IsExist(x + 1, y + 1))
+                        if (_cells.IsExist(x + 1, y + 1))
                         {
-                            CellData nextCell = cells[y + 1, x + 1];
+                            CellData nextCell = _cells[y + 1, x + 1];
                             if (nextCell.Type == CellType.Normal)
                             {
-                                if (UnityEngine.Mathf.Abs(currentCell.Height - nextCell.Height) < cells.HeightLimit)
+                                if (UnityEngine.Mathf.Abs(currentCell.Height - nextCell.Height) < _cells.HeightLimit)
                                 {
-                                    Vector3 from = cells.GetPosVec3(new Point(x, y), currentCell.Height + _gridGap);
-                                    Vector3 to = cells.GetPosVec3(new Point(x + 1, y + 1), nextCell.Height + _gridGap);
+                                    Vector3 from = _cells.GetPosVec3(new Point(x, y), currentCell.Height + _gridGap);
+                                    Vector3 to = _cells.GetPosVec3(new Point(x + 1, y + 1), nextCell.Height + _gridGap);
                                     Gizmos.DrawLine(from, to);
                                 }
                             }
                         }
                         // left up
-                        if (cells.IsExist(x - 1, y + 1))
+                        if (_cells.IsExist(x - 1, y + 1))
                         {
-                            CellData nextCell = cells[y + 1, x - 1];
+                            CellData nextCell = _cells[y + 1, x - 1];
                             if (nextCell.Type == CellType.Normal)
                             {
-                                if (UnityEngine.Mathf.Abs(currentCell.Height - nextCell.Height) < cells.HeightLimit)
+                                if (UnityEngine.Mathf.Abs(currentCell.Height - nextCell.Height) < _cells.HeightLimit)
                                 {
-                                    Vector3 from = cells.GetPosVec3(new Point(x, y), currentCell.Height + _gridGap);
-                                    Vector3 to = cells.GetPosVec3(new Point(x - 1, y + 1), nextCell.Height + _gridGap);
+                                    Vector3 from = _cells.GetPosVec3(new Point(x, y), currentCell.Height + _gridGap);
+                                    Vector3 to = _cells.GetPosVec3(new Point(x - 1, y + 1), nextCell.Height + _gridGap);
                                     Gizmos.DrawLine(from, to);
                                 }
                             }
@@ -384,35 +380,33 @@ public class ScannerWindow : EditorWindow
 
     void OnGUI()
     {
-        var cells = DataCon.Instance.CellDatas;
-
         EditorGUILayout.BeginVertical();
 
         #region 1st Step - Map Scan
         EditorGUILayout.BeginVertical("box");
         EditorGUILayout.LabelField("1st Step - Scan");
         EditorGUILayout.EndVertical();
-        cells.CellSize = EditorGUILayout.FloatField("CellSize", cells.CellSize);
-        cells.HeightLimit = EditorGUILayout.FloatField("height Limit", cells.HeightLimit);
+        _cells.CellSize = EditorGUILayout.FloatField("CellSize", _cells.CellSize);
+        _cells.HeightLimit = EditorGUILayout.FloatField("height Limit", _cells.HeightLimit);
         if (GUILayout.Button("Scan the map"))
         {
-            cells.Clear();
+            _cells.Clear();
             _testMode = false;
             _testClickedIndex = new Point();
 
-            cells.MapBound = ScanMapSize();
+            _cells.MapBound = ScanMapSize();
 
             int layerMask = 1 << 8;
 
-            int height = (int)((cells.MapBound.yMax - cells.MapBound.yMin) / cells.CellSize);
-            int width = (int)((cells.MapBound.xMax - cells.MapBound.xMin) / cells.CellSize);
+            int height = (int)((_cells.MapBound.yMax - _cells.MapBound.yMin) / _cells.CellSize);
+            int width = (int)((_cells.MapBound.xMax - _cells.MapBound.xMin) / _cells.CellSize);
 
-            cells.Create(width, height);
-            cells.StartingPoint = new Vector2(cells.MapBound.xMin, cells.MapBound.yMax);
+            _cells.Create(width, height);
+            _cells.StartingPoint = new Vector2(_cells.MapBound.xMin, _cells.MapBound.yMax);
 
-            foreach (CellData ele in cells)
+            foreach (CellData ele in _cells)
             {
-                Vector3 rayStart = cells.GetPosVec3(ele.Index, 100f);
+                Vector3 rayStart = _cells.GetPosVec3(ele.Index, 100f);
                 RaycastHit hit;
                 if (Physics.Raycast(rayStart, Vector3.down, out hit, 2000f, layerMask))
                 {
@@ -440,7 +434,7 @@ public class ScannerWindow : EditorWindow
 
         EditorGUILayout.Separator();
 
-        if (!cells.IsEmpty)
+        if (!_cells.IsEmpty)
         {
             #region View Options
             EditorGUILayout.BeginVertical("box");
@@ -448,8 +442,8 @@ public class ScannerWindow : EditorWindow
             _showGrid = EditorGUILayout.Toggle("- Show Grid", _showGrid);
             _showIndex = EditorGUILayout.Toggle("- Show Index", _showIndex);
             _viewDistance = EditorGUILayout.Slider("- View Distance", _viewDistance, 10f, 100f);
-            EditorGUILayout.LabelField("- Map Index Width", ((int)(cells.MapBound.width / cells.CellSize)).ToString());
-            EditorGUILayout.LabelField("- Map Index height", ((int)(cells.MapBound.height / cells.CellSize)).ToString());
+            EditorGUILayout.LabelField("- Map Index Width", ((int)(_cells.MapBound.width / _cells.CellSize)).ToString());
+            EditorGUILayout.LabelField("- Map Index height", ((int)(_cells.MapBound.height / _cells.CellSize)).ToString());
             EditorGUILayout.EndVertical();
             #endregion
 
@@ -463,13 +457,13 @@ public class ScannerWindow : EditorWindow
             _testMode = EditorGUILayout.Toggle("Test Mode", _testMode);
             if (_testMode != pastTestMode && _testMode)
             {
-                foreach (CellData element in cells)
+                foreach (CellData element in _cells)
                 {
                     if (element.Type == CellType.Normal)
                     {
                         continue;
-                        //_testAsHero = cells.GetPosVec3(element.Index, element.Y);
-                        //_testJpsHero = cells.GetPosVec3(element.Index, element.Y);
+                        //_testAsHero = _cells.GetPosVec3(element.Index, element.Y);
+                        //_testJpsHero = _cells.GetPosVec3(element.Index, element.Y);
                         //break;
                     }
                 }
@@ -520,13 +514,13 @@ public class ScannerWindow : EditorWindow
         FileStream fs = new FileStream(PATH_CELLSETTINGS + Path.GetFileNameWithoutExtension(scenename) + ".cel", FileMode.Create, FileAccess.Write );
         BinaryWriter bw = new BinaryWriter(fs);
         bw.Write(scenename);
-        bw.Write(cells.CellSize);
-        bw.Write(cells.HeightLimit);
-        bw.Write(cells.StartingPoint.x);
-        bw.Write(cells.StartingPoint.y);
-        bw.Write(cells.CountX);
-        bw.Write(cells.CountY);
-        foreach (CellData cell in cells)
+        bw.Write(_cells.CellSize);
+        bw.Write(_cells.HeightLimit);
+        bw.Write(_cells.StartingPoint.x);
+        bw.Write(_cells.StartingPoint.y);
+        bw.Write(_cells.CountX);
+        bw.Write(_cells.CountY);
+        foreach (CellData cell in _cells)
         {
             bw.Write(cell.Height);
             bw.Write(cell.Type.GetHashCode());
@@ -553,25 +547,25 @@ public class ScannerWindow : EditorWindow
         name.InnerText = scenename;
         cellInfo.AppendChild(name);
         XmlNode cellsize = doc.CreateElement(CELLSIZE);
-        cellsize.InnerText = cells.CellSize.ToString();
+        cellsize.InnerText = _cells.CellSize.ToString();
         cellInfo.AppendChild(cellsize);
         XmlNode heightLimit = doc.CreateElement(HEIGHTLIMIT);
-        heightLimit.InnerText = cells.HeightLimit.ToString();
+        heightLimit.InnerText = _cells.HeightLimit.ToString();
         cellInfo.AppendChild(heightLimit);
         XmlNode startPos = doc.CreateElement(STARTPOS);
-        startPos.InnerText = cells.StartingPoint.ToStringNoBracket();
+        startPos.InnerText = _cells.StartingPoint.ToStringNoBracket();
         cellInfo.AppendChild(startPos);
         XmlNode width = doc.CreateElement(CELLWIDTH);
-        width.InnerText = cells.CountX.ToString();
+        width.InnerText = _cells.CountX.ToString();
         cellInfo.AppendChild(width);
         XmlNode height = doc.CreateElement(CELLHEIGHT);
-        height.InnerText = cells.CountY.ToString();
+        height.InnerText = _cells.CountY.ToString();
         cellInfo.AppendChild(height);
 
         XmlNode cellData = doc.CreateElement(CELLS);
         root.AppendChild(cellData);
 
-        foreach (CellData cell in cells)
+        foreach (CellData cell in _cells)
         {
             XmlNode c = doc.CreateElement(CELL);
             cellData.AppendChild(c);

@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace ZKit.PathFinder
@@ -80,13 +79,17 @@ namespace ZKit.PathFinder
         public Node _start;
         public Node _end;
 
-        public void SetMap()
-        {
-            if (DataCon.Instance.CellDatas.IsEmpty) return;
+        public PackCellData _cells;
 
-            _countX = DataCon.Instance.CellDatas.CountX;
-            _countY = DataCon.Instance.CellDatas.CountY;
-            _heightLimit = DataCon.Instance.CellDatas.HeightLimit;// *DataCon.Instance.CellDatas.CellSize;
+        public void SetMap(PackCellData cells)
+        {
+            if (cells.IsEmpty) return;
+
+            _cells = cells;
+
+            _countX = cells.CountX;
+            _countY = cells.CountY;
+            _heightLimit = cells.HeightLimit;// *cells.CellSize;
             _map = new Node[_countY, _countX];
 
             for (int y = 0; y < _countY; ++y)
@@ -94,10 +97,10 @@ namespace ZKit.PathFinder
                 for (int x = 0; x < _countX; ++x)
                 {
                     bool cango = false;
-                    if (DataCon.Instance.CellDatas[y, x].Type == CellType.Normal) cango = true;
+                    if (cells[y, x].Type == CellType.Normal) cango = true;
                     else cango = false;
 
-                    _map[y, x] = new Node((y * _countX + x), x, y, DataCon.Instance.CellDatas[y, x].Height, cango);
+                    _map[y, x] = new Node((y * _countX + x), x, y, cells[y, x].Height, cango);
                 }
             }
             _closedList = new Node[_countX * _countY];
@@ -137,8 +140,8 @@ namespace ZKit.PathFinder
         {
             if (!Prepare()) return null;
 
-            Point sp = DataCon.Instance.CellDatas.GetNearIndex(start);
-            Point ep = DataCon.Instance.CellDatas.GetNearIndex(end);
+            Point sp = cells.GetNearIndex(start);
+            Point ep = cells.GetNearIndex(end);
             if (!_map[ep.y, ep.x].CanGo)
             {
                 if (!FindMovablePoint(ep, sp, out ep)) return null;
@@ -199,16 +202,16 @@ namespace ZKit.PathFinder
             List<Vector3> result = new List<Vector3>();
             foreach (Point ele in pathResult)
             {
-                result.Add(DataCon.Instance.CellDatas.GetPosVec3(_map[ele.y, ele.x].Index, _map[ele.y, ele.x].Height));
+                result.Add(cells.GetPosVec3(_map[ele.y, ele.x].Index, _map[ele.y, ele.x].Height));
             }
             
             return result;
             //List<Vector3> result = new List<Vector3>();
             //for (Node j = _end; j.Parent != null; j = j.Parent)
             //{
-            //    result.Insert(0, DataCon.Instance.CellDatas.GetPosVec3(j.Index, j.Height));
+            //    result.Insert(0, cells.GetPosVec3(j.Index, j.Height));
             //}
-            ////result.Insert(0, DataCon.Instance.CellDatas.GetPosVec3(_start.Index, _start.Height));
+            ////result.Insert(0, cells.GetPosVec3(_start.Index, _start.Height));
             //return result;
         }
 
@@ -644,13 +647,13 @@ namespace ZKit.PathFinder
         public Node _start;
         public Node _end;
 
-        public void SetMap()
+        public void SetMap(PackCellData cells)
         {
-            if (DataCon.Instance.CellDatas.IsEmpty) return;
+            if (cells.IsEmpty) return;
 
-            _countX = DataCon.Instance.CellDatas.CountX;
-            _countY = DataCon.Instance.CellDatas.CountY;
-            _heightLimit = DataCon.Instance.CellDatas.HeightLimit * DataCon.Instance.CellDatas.CellSize;
+            _countX = cells.CountX;
+            _countY = cells.CountY;
+            _heightLimit = cells.HeightLimit * cells.CellSize;
             _map = new Node[_countY, _countX];
 
             for (int y = 0; y < _countY; ++y)
@@ -658,10 +661,10 @@ namespace ZKit.PathFinder
                 for (int x = 0; x < _countX; ++x)
                 {
                     bool cango = false;
-                    if (DataCon.Instance.CellDatas[y, x].Type == CellType.Normal) cango = true;
+                    if (cells[y, x].Type == CellType.Normal) cango = true;
                     else cango = false;
 
-                    _map[y, x] = new Node((y * _countX + x), x, y, DataCon.Instance.CellDatas[y, x].Height, cango);
+                    _map[y, x] = new Node((y * _countX + x), x, y, cells[y, x].Height, cango);
                 }
             }
         }
