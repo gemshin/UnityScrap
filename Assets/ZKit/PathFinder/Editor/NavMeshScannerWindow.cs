@@ -33,12 +33,12 @@ public class NavMeshScannerWindow : EditorWindow
         EditorGUILayout.BeginVertical();
         EditorGUILayout.BeginVertical("box");
         EditorGUILayout.LabelField("1st Step - Scan");
-        cells.CellSize = EditorGUILayout.FloatField("CellSize", cells.CellSize);
-        cells.HeightLimit = EditorGUILayout.FloatField("height Limit", cells.HeightLimit);
+        EditorGUILayout.EndVertical();
+        //cells.CellSize = EditorGUILayout.FloatField("CellSize", cells.CellSize);
+        //cells.HeightLimit = EditorGUILayout.FloatField("height Limit", cells.HeightLimit);
         if (GUILayout.Button("Scan the map"))
         {
         }
-            EditorGUILayout.EndVertical();
         EditorGUILayout.EndVertical();
     }
 }

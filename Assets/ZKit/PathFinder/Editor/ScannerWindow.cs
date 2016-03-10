@@ -86,7 +86,7 @@ public class ScannerWindow : EditorWindow
     {
         if (_testMode) HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
 
-        if (DataCon.Instance.CellDatas.IsEmpty) return;
+        if (_cells.IsEmpty) return;
 
         #region Draw Map Bound
         Handles.color = Color.red;
@@ -236,12 +236,12 @@ public class ScannerWindow : EditorWindow
 
     void Update()
     {
-        if (DataCon.Instance.CellDatas.IsEmpty) return;
+        if (_cells.IsEmpty) return;
 
         #region test Hero 를 움직인다.
         if (_testMode && _testHeroMoveMode )
         {
-            _testHeroMoveTime += (Time.deltaTime * (1000f * _testHeroSpeed) * (1 / DataCon.Instance.CellDatas.CellSize));
+            _testHeroMoveTime += (Time.deltaTime * (1000f * _testHeroSpeed) * (1 / _cells.CellSize));
             if (_testHeroMoveTime >= 1f)
             {
                 _testHeroMoveTime = (_testHeroMoveTime - 1f) >= 1f ? 0f : (_testHeroMoveTime - 1f);
@@ -273,6 +273,8 @@ public class ScannerWindow : EditorWindow
     [DrawGizmo(GizmoType.NotInSelectionHierarchy | GizmoType.Selected)]
     static void DrawGizmo(GizmoDummy dummy, GizmoType gizmoType)
     {
+        if (_cells == null || _cells.IsEmpty) return;
+
         #region Draw Cell Grid
         if (_showGrid)
         {
@@ -426,8 +428,8 @@ public class ScannerWindow : EditorWindow
                 }
             }
 
-            AStar.Instance.SetMap();
-            JPS.Instance.SetMap();
+            AStar.Instance.SetMap(_cells);
+            JPS.Instance.SetMap(_cells);
             _asPath = null;
         }
         #endregion
@@ -509,7 +511,6 @@ public class ScannerWindow : EditorWindow
 
     private bool SaveToFile()
     {
-        var cells = DataCon.Instance.CellDatas;
         string scenename = Path.GetFileName(EditorApplication.currentScene);
         FileStream fs = new FileStream(PATH_CELLSETTINGS + Path.GetFileNameWithoutExtension(scenename) + ".cel", FileMode.Create, FileAccess.Write );
         BinaryWriter bw = new BinaryWriter(fs);
@@ -532,8 +533,6 @@ public class ScannerWindow : EditorWindow
 
     private bool SaveToXmlFile()
     {
-        var cells = DataCon.Instance.CellDatas;
-
         XmlDocument doc = new System.Xml.XmlDocument();
         string scenename = Path.GetFileName(EditorApplication.currentScene);
 

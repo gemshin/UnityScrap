@@ -8,7 +8,9 @@ namespace ZKit.PathFinder
         CantMove = 0,
         Normal
     }
-
+    /// <summary>
+    /// 일반 쎌 데이터.
+    /// </summary>
     public class CellData
     {
         private int _x = 0;
