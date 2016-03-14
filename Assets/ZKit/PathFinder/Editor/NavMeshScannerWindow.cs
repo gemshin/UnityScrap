@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using UnityEditor;
+using System.Collections;
+using System.Collections.Generic;
 
 using ZKit;
 
@@ -35,6 +37,38 @@ public class NavMeshScannerWindow : EditorWindow
             Handles.DrawLine(new Vector3(_testSize.xMax, y, _testSize.yMin), new Vector3(_testSize.xMax, y, _testSize.yMax));
         }
         #endregion
+
+        //List<string> layerNames = new List<string>();
+        //for (int i = 0; i < 32; ++i)
+        //{
+        //    if (LayerMask.LayerToName(i).Length != 0)
+        //        layerNames.Add(LayerMask.LayerToName(i));
+        //}
+        //List<string> pathLayers = new List<string>();
+        //for (int i = 0; i < layerNames.Count; ++i)
+        //{
+        //    if ((_pathLayerMask & (1 << i)) != 0)
+        //        pathLayers.Add(layerNames[i]);
+        //}
+        //int pathLayerMask = LayerMask.GetMask(pathLayers.ToArray());
+
+        //GameObject[] gameObjects = (GameObject[])FindObjectsOfType(typeof(GameObject));
+        //foreach (GameObject go in gameObjects)
+        //{
+        //    if ((pathLayerMask & (1 << go.layer)) == 0) continue;
+
+        //    MeshFilter mf = go.GetComponent<MeshFilter>();
+        //    if (!mf) continue;
+        //    if (!mf.sharedMesh) continue;
+
+        //    foreach (var vertex in mf.sharedMesh.vertices)
+        //    {
+        //        Vector3 v = vertex;
+        //        v.Scale(go.transform.localScale);
+        //        v = go.transform.rotation * v;
+        //        Handles.DotCap(0, (go.transform.position + (v)), Quaternion.identity, 0.05f);
+        //    }
+        //}
     }
 
     [DrawGizmo(GizmoType.NotInSelectionHierarchy | GizmoType.Selected)]
@@ -45,6 +79,9 @@ public class NavMeshScannerWindow : EditorWindow
 
     static Rect _testSize = new Rect();
 
+    static int _pathLayerMask;
+    static int _obstacleLayerMask;
+
     private void OnGUI()
     {
         EditorGUILayout.BeginVertical();
@@ -53,6 +90,16 @@ public class NavMeshScannerWindow : EditorWindow
         EditorGUILayout.EndVertical();
         //cells.CellSize = EditorGUILayout.FloatField("CellSize", cells.CellSize);
         //cells.HeightLimit = EditorGUILayout.FloatField("height Limit", cells.HeightLimit);
+
+        List<string> layerNames = new List<string>();
+        for(int i = 0; i < 32; ++i)
+        {
+            if(LayerMask.LayerToName(i).Length != 0)
+                layerNames.Add(LayerMask.LayerToName(i));
+        }
+        _pathLayerMask = EditorGUILayout.MaskField("Path",_pathLayerMask, layerNames.ToArray());
+        _obstacleLayerMask = EditorGUILayout.MaskField("Obstacles", _obstacleLayerMask, layerNames.ToArray());
+
         if (GUILayout.Button("Scan the map"))
         {
             _testSize = ScanMapSize();
@@ -63,7 +110,6 @@ public class NavMeshScannerWindow : EditorWindow
     private Rect ScanMapSize()
     {
         TerrainCollider[] terrain = (TerrainCollider[])GameObject.FindObjectsOfType(typeof(TerrainCollider));
-        // TODO : o 의 크기가 0이면 건너뛴다.
 
         Rect result = new Rect(0f, 0f, 0f, 0f);
 
@@ -85,56 +131,41 @@ public class NavMeshScannerWindow : EditorWindow
             #endregion
         }
 
-        GameObject[] o = (GameObject[])GameObject.FindObjectsOfType(typeof(GameObject));
+        List<string> layerNames = new List<string>();
+        for (int i = 0; i < 32; ++i)
+        {
+            if (LayerMask.LayerToName(i).Length != 0)
+                layerNames.Add(LayerMask.LayerToName(i));
+        }
+        List<string> selectedLayers = new List<string>();
+        for (int i = 0; i < layerNames.Count; ++i)
+        {
+            if (((_pathLayerMask & (1 << i)) != 0) || ((_obstacleLayerMask & (1 << i)) != 0))
+                selectedLayers.Add(layerNames[i]);
+        }
+        int selectedLayerMask = LayerMask.GetMask(selectedLayers.ToArray());
 
-        //int layerMask = 1 << 8;
-        //#region 상하좌우 크기를 검색
-        //for (int i = 0; i < o.Length; ++i)
-        //{
-        //    Vector3 point = o[i].transform.position; point.y += 100.0f;
-        //    if (Physics.Raycast(point, Vector3.down, 2000, layerMask))
-        //    {
-        //        if (result.xMax < point.x) result.xMax = point.x;
-        //        else if (result.xMin > point.x) result.xMin = point.x;
-        //        if (result.yMax < point.z) result.yMax = point.z;
-        //        else if (result.yMin > point.z) result.yMin = point.z;
-        //    }
-        //}
-        //#endregion
+        foreach (GameObject go in (GameObject[])GameObject.FindObjectsOfType(typeof(GameObject)))
+        {
+            if ((selectedLayerMask & (1<<go.layer)) == 0) continue;
 
-        //#region 혹시 모를 자투리 여백을 검색 ( 100정도 크기 확인해보고 줄일 수 있음 더 줄이자. )
-        //for (float i = result.xMin; i < result.xMax; ++i)
-        //{
-        //    float yMax = result.yMax;
-        //    float yMin = result.yMin;
-        //    for (int j = 1; j < 100; ++j)
-        //    {
-        //        if (Physics.Raycast(new Vector3(i, 100f, yMax + j), Vector3.down, 2000, layerMask))
-        //            result.yMax = yMax + j;
-        //        if (Physics.Raycast(new Vector3(i, 100f, yMin - j), Vector3.down, 2000, layerMask))
-        //            result.yMin = yMin - j;
-        //    }
-        //}
+            MeshFilter mf = go.GetComponent<MeshFilter>();
+            if (!mf) continue;
+            if (!mf.sharedMesh) continue;
+            foreach(var vertex in mf.sharedMesh.vertices)
+            {
+                Vector3 v = vertex;
+                v.Scale(go.transform.localScale);
+                v = go.transform.rotation * v;
+                v += go.transform.position;
 
-        //for (float i = result.yMin; i < result.yMax; ++i)
-        //{
-        //    float xMax = result.xMax;
-        //    float xMin = result.xMin;
-        //    for (int j = 1; j < 100; ++j)
-        //    {
-        //        if (Physics.Raycast(new Vector3(xMax + j, 100f, i), Vector3.down, 2000, layerMask))
-        //            result.xMax = xMax + j;
-        //        if (Physics.Raycast(new Vector3(xMin - j, 100f, i), Vector3.down, 2000, layerMask))
-        //            result.xMin = xMin - j;
-        //    }
-        //}
-        //#endregion
+                if (result.xMax < v.x) result.xMax = v.x;
+                else if (result.xMin > v.x) result.xMin = v.x;
 
-        // 2칸정도 여백을 추가.
-        result.xMax += 2f;
-        result.xMin -= 2f;
-        result.yMax += 2f;
-        result.yMin -= 2f;
+                if (result.yMax < v.z) result.yMax = v.z;
+                else if (result.yMin > v.z) result.yMin = v.z;
+            }
+        }
 
         return result;
     }
