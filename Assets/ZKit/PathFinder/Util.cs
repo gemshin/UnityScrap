@@ -1,9 +1,6 @@
-﻿using UnityEngine;
-using System.Collections;
-
-namespace ZKit.PathFinder
+﻿namespace ZKit.PathFinder
 {
-    public static class Util
+    public static partial class Util
     {
         private const int _cellStraight = 10;
         private const int _cellDiagonal = 14;
