@@ -17,9 +17,9 @@ namespace ZKit.PathFinder
                 for (int i = 0; i < terrain.Length; ++i)
                 {
                     if (result.xMax < terrain[i].bounds.max.x) result.xMax = terrain[i].bounds.max.x;
-                    else if (result.xMin > terrain[i].bounds.min.x) result.xMin = terrain[i].bounds.min.x;
+                    if (result.xMin > terrain[i].bounds.min.x) result.xMin = terrain[i].bounds.min.x;
                     if (result.yMax < terrain[i].bounds.max.z) result.yMax = terrain[i].bounds.max.z;
-                    else if (result.yMin > terrain[i].bounds.min.z) result.yMin = terrain[i].bounds.min.z;
+                    if (result.yMin > terrain[i].bounds.min.z) result.yMin = terrain[i].bounds.min.z;
                 }
                 #endregion
             }
@@ -75,9 +75,11 @@ namespace ZKit.PathFinder
                 for (int i = 0; i < terrain.Length; ++i)
                 {
                     if (result.xMax < terrain[i].bounds.max.x) result.xMax = terrain[i].bounds.max.x;
-                    else if (result.xMin > terrain[i].bounds.min.x) result.xMin = terrain[i].bounds.min.x;
-                    if (result.yMax < terrain[i].bounds.max.z) result.yMax = terrain[i].bounds.max.z;
-                    else if (result.yMin > terrain[i].bounds.min.z) result.yMin = terrain[i].bounds.min.z;
+                    if (result.xMin > terrain[i].bounds.min.x) result.xMin = terrain[i].bounds.min.x;
+                    if (result.yMax < terrain[i].bounds.max.y) result.yMax = terrain[i].bounds.max.y;
+                    if (result.yMin > terrain[i].bounds.min.y) result.yMin = terrain[i].bounds.min.y;
+                    if (result.zMax < terrain[i].bounds.max.z) result.zMax = terrain[i].bounds.max.z;
+                    if (result.zMin > terrain[i].bounds.min.z) result.zMin = terrain[i].bounds.min.z;
                 }
                 #endregion
             }
@@ -122,6 +124,11 @@ namespace ZKit.PathFinder
             }
 
             return result;
+        }
+
+        public static void GetVoxel()
+        {
+
         }
     }
 }
