@@ -24,27 +24,15 @@ namespace ZKit.PathFinder
                 #endregion
             }
 
-            List<string> layerNames = new List<string>();
-            for (int i = 0; i < 32; ++i)
-            {
-                if (LayerMask.LayerToName(i).Length != 0)
-                    layerNames.Add(LayerMask.LayerToName(i));
-            }
-            List<string> selectedLayers = new List<string>();
-            for (int i = 0; i < layerNames.Count; ++i)
-            {
-                if (((pathLayerMask & (1 << i)) != 0) || ((obstacleLayerMask & (1 << i)) != 0))
-                    selectedLayers.Add(layerNames[i]);
-            }
-            int selectedLayerMask = LayerMask.GetMask(selectedLayers.ToArray());
-
+            int layerMask = (1 << pathLayerMask << obstacleLayerMask);
             foreach (GameObject go in (GameObject[])GameObject.FindObjectsOfType(typeof(GameObject)))
             {
-                if ((selectedLayerMask & (1 << go.layer)) == 0) continue;
+                if ((layerMask & (1 << go.layer)) == 0) continue;
 
                 MeshFilter mf = go.GetComponent<MeshFilter>();
                 if (!mf) continue;
                 if (!mf.sharedMesh) continue;
+
                 foreach (var vertex in mf.sharedMesh.vertices)
                 {
                     Vector3 v = vertex;

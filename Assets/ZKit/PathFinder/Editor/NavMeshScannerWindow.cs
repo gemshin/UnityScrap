@@ -163,50 +163,7 @@ public class NavMeshScannerWindow : EditorWindow
         GameObject root = GameObject.Find("Debug Voxels");
         if (root != null) GameObject.DestroyImmediate(root);
         root = new GameObject("Debug Voxels");
-        root.hideFlags = HideFlags.HideAndDontSave;
-
-        Vector3[] vertexList = new Vector3[]
-        {
-            //new Vector3(-_cellSize, -_cellSize, -_cellSize),
-            //new Vector3(-_cellSize, _cellSize, -_cellSize),
-            //new Vector3(_cellSize, _cellSize, -_cellSize),
-            //new Vector3(_cellSize, -_cellSize, -_cellSize),
-            //new Vector3(_cellSize, -_cellSize, _cellSize),
-            //new Vector3(_cellSize, _cellSize, _cellSize),
-            //new Vector3(-_cellSize, _cellSize, _cellSize),
-            //new Vector3(-_cellSize, -_cellSize, _cellSize)
-            new Vector3(-0.5f, -0.5f, -0.5f),
-            new Vector3(-0.5f, 0.5f, -0.5f),
-            new Vector3(0.5f, 0.5f, -0.5f),
-            new Vector3(0.5f, -0.5f, -0.5f),
-            new Vector3(0.5f, -0.5f, 0.5f),
-            new Vector3(0.5f, 0.5f, 0.5f),
-            new Vector3(-0.5f, 0.5f, 0.5f),
-            new Vector3(-0.5f, -0.5f, 0.5f)
-        };
-
-        int[] faceList = new int[]
-        {
-            0, 1, 3, //   1: face arrière
-            0, 2, 3,
-            3, 2, 5, //   2: face droite
-            3, 5, 4,
-            5, 2, 1, //   3: face dessue
-            5, 1, 6,
-            3, 4, 7, //   4: face dessous
-            3, 7, 0,
-            0, 7, 6, //   5: face gauche
-            0, 6, 1,
-            4, 5, 6, //   6: face avant
-            4, 6, 7
-         };
-
-        Vector2[] textureCoordinate = new Vector2[] {
-             new Vector2(0.0f, 0.0f),
-             new Vector2(1.0f, 0.0f),
-             new Vector2(0.0f, 1.0f),
-             new Vector2(1.0f, 0.0f)
-        };
+        //root.hideFlags = HideFlags.HideAndDontSave;
 
         uint xCount = (uint)System.Math.Truncate((_mapSize.xMax - _mapSize.xMin) / _cellSize);
         uint yCount = (uint)System.Math.Truncate((_mapSize.yMax - _mapSize.yMin) / _cellHeight);
@@ -215,20 +172,10 @@ public class NavMeshScannerWindow : EditorWindow
         {
             for (int j = 1; j <= xCount; ++j)
             {
-                GameObject newMesh = new GameObject((j * i).ToString());
-
-                MeshFilter mf = newMesh.AddComponent<MeshFilter>();
-                MeshRenderer mr = newMesh.AddComponent<MeshRenderer>();
-
-                Mesh mesh = new Mesh();
-                mesh.vertices = vertexList;
-                mesh.triangles = faceList;
-                mesh.RecalculateNormals();
-                mf.mesh = mesh;
-
-                Material material = new Material(Shader.Find("Diffuse"));
-                material.color = Color.red;
-                mr.material = material;
+                GameObject newMesh = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                DestroyImmediate(newMesh.GetComponent<BoxCollider>());
+                MeshRenderer mr = newMesh.GetComponent<MeshRenderer>();
+                //mr.material.color = Color.red;
                 mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
                 mr.receiveShadows = false;
                 mr.useLightProbes = false;
