@@ -54,20 +54,42 @@ namespace ZKit.PathFinder
     public class VoxelSpace : NonPubSingleton<VoxelSpace>
     {
         private bool _setDone = false;
-        private Bounds _space;
+        private Bounds _spaceSize;
         private float _cellSize;
         private float _cellHeight;
         private VoxelSpan[] _voxelSpawn;
 
-        private List<SimpleMesh> _inObjects;
+        private List<SimpleMesh> _inObjects = new List<SimpleMesh>();
 
         private int _pathLayerMask = 0;
         private int _obstacleLayerMask = 0;
 
-        public void CollectObjects()
+        public Bounds SpaceSize { get { return _spaceSize; } }
+        public float CellSize { get { return _cellSize; } }
+        public float CellHeight { get { return _cellHeight; } }
+
+        public void InitVoxelSpace(float cellSize, float cellHeight, int pathLayerMask, int obstacleLayerMask)
+        {
+            _setDone = false;
+            _cellSize = cellSize;
+            _cellHeight = cellHeight;
+            _pathLayerMask = pathLayerMask;
+            _obstacleLayerMask = obstacleLayerMask;
+
+            _spaceSize = UUtil.ScanMapSize3D(_pathLayerMask, _obstacleLayerMask);
+
+            _inObjects.Clear();
+        }
+
+        public void ScanVoxelSpace()
+        {
+            CollectObjects();
+            Voxelize();
+        }
+
+        private void CollectObjects()
         {
             if (_setDone) return;
-            int layerMask = (1 << _pathLayerMask << _obstacleLayerMask);
 
             //var cachedVertices = new Dictionary<Mesh, Vector3[]>();
             //var cachedTris = new Dictionary<Mesh, int[]>();
@@ -76,9 +98,9 @@ namespace ZKit.PathFinder
             {
                 var renderer = filter.GetComponent<MeshRenderer>();
                 if (filter.sharedMesh == null || !renderer.enabled) continue;
-                if ((layerMask & (1 << filter.gameObject.layer)) == 0) continue;
+                if (((_pathLayerMask | _obstacleLayerMask) & (1 << filter.gameObject.layer)) == 0) continue;
                 
-                if( _space.Intersects(renderer.bounds) )
+                if( _spaceSize.Intersects(renderer.bounds) )
                 {
                     Mesh mesh = filter.sharedMesh;
                     SimpleMesh smesh = new SimpleMesh();
@@ -102,11 +124,15 @@ namespace ZKit.PathFinder
                     _inObjects.Add(smesh);
                 }
             }
-            
+            _setDone = true;
+        }
+        private void Voxelize()
+        {
+
         }
     }
 
-    public class VoxelSpan
+    public class VoxelSpan // 판때기인듯.
     {
         private uint _spawn;
         //private VoxelCell _voxelCell;

@@ -4,13 +4,14 @@ using System.Collections;
 using System.Collections.Generic;
 
 using ZKit;
+using ZKit.PathFinder;
 
 public class NavMeshScannerWindow : EditorWindow
 {
-    static Cuboid _mapSize = new Cuboid();
+    static Bounds _mapSize = new Bounds();
 
-    static int _pathLayerMask;
-    static int _obstacleLayerMask;
+    static int _pathMask;
+    static int _obstacleMask;
 
     static float _cellSize = 1f;
     static float _cellHeight = 1f;
@@ -40,38 +41,38 @@ public class NavMeshScannerWindow : EditorWindow
     {
         #region Draw Map Bound
         Handles.color = Color.red;
-        Handles.DrawLine(new Vector3(_mapSize.xMax, _mapSize.yMax, _mapSize.zMax), new Vector3(_mapSize.xMin, _mapSize.yMax, _mapSize.zMax));
-        Handles.DrawLine(new Vector3(_mapSize.xMin, _mapSize.yMax, _mapSize.zMax), new Vector3(_mapSize.xMin, _mapSize.yMax, _mapSize.zMin));
-        Handles.DrawLine(new Vector3(_mapSize.xMin, _mapSize.yMax, _mapSize.zMin), new Vector3(_mapSize.xMax, _mapSize.yMax, _mapSize.zMin));
-        Handles.DrawLine(new Vector3(_mapSize.xMax, _mapSize.yMax, _mapSize.zMin), new Vector3(_mapSize.xMax, _mapSize.yMax, _mapSize.zMax));
+        Handles.DrawLine(new Vector3(_mapSize.max.x, _mapSize.max.y, _mapSize.max.z), new Vector3(_mapSize.min.x, _mapSize.max.y, _mapSize.max.z));
+        Handles.DrawLine(new Vector3(_mapSize.min.x, _mapSize.max.y, _mapSize.max.z), new Vector3(_mapSize.min.x, _mapSize.max.y, _mapSize.min.z));
+        Handles.DrawLine(new Vector3(_mapSize.min.x, _mapSize.max.y, _mapSize.min.z), new Vector3(_mapSize.max.x, _mapSize.max.y, _mapSize.min.z));
+        Handles.DrawLine(new Vector3(_mapSize.max.x, _mapSize.max.y, _mapSize.min.z), new Vector3(_mapSize.max.x, _mapSize.max.y, _mapSize.max.z));
 
-        Handles.DrawLine(new Vector3(_mapSize.xMax, _mapSize.yMin, _mapSize.zMax), new Vector3(_mapSize.xMin, _mapSize.yMin, _mapSize.zMax));
-        Handles.DrawLine(new Vector3(_mapSize.xMin, _mapSize.yMin, _mapSize.zMax), new Vector3(_mapSize.xMin, _mapSize.yMin, _mapSize.zMin));
-        Handles.DrawLine(new Vector3(_mapSize.xMin, _mapSize.yMin, _mapSize.zMin), new Vector3(_mapSize.xMax, _mapSize.yMin, _mapSize.zMin));
-        Handles.DrawLine(new Vector3(_mapSize.xMax, _mapSize.yMin, _mapSize.zMin), new Vector3(_mapSize.xMax, _mapSize.yMin, _mapSize.zMax));
+        Handles.DrawLine(new Vector3(_mapSize.max.x, _mapSize.min.y, _mapSize.max.z), new Vector3(_mapSize.min.x, _mapSize.min.y, _mapSize.max.z));
+        Handles.DrawLine(new Vector3(_mapSize.min.x, _mapSize.min.y, _mapSize.max.z), new Vector3(_mapSize.min.x, _mapSize.min.y, _mapSize.min.z));
+        Handles.DrawLine(new Vector3(_mapSize.min.x, _mapSize.min.y, _mapSize.min.z), new Vector3(_mapSize.max.x, _mapSize.min.y, _mapSize.min.z));
+        Handles.DrawLine(new Vector3(_mapSize.max.x, _mapSize.min.y, _mapSize.min.z), new Vector3(_mapSize.max.x, _mapSize.min.y, _mapSize.max.z));
 
-        Handles.DrawLine(new Vector3(_mapSize.xMax, _mapSize.yMax, _mapSize.zMax), new Vector3(_mapSize.xMax, _mapSize.yMin, _mapSize.zMax));
-        Handles.DrawLine(new Vector3(_mapSize.xMin, _mapSize.yMax, _mapSize.zMax), new Vector3(_mapSize.xMin, _mapSize.yMin, _mapSize.zMax));
-        Handles.DrawLine(new Vector3(_mapSize.xMin, _mapSize.yMax, _mapSize.zMin), new Vector3(_mapSize.xMin, _mapSize.yMin, _mapSize.zMin));
-        Handles.DrawLine(new Vector3(_mapSize.xMax, _mapSize.yMax, _mapSize.zMin), new Vector3(_mapSize.xMax, _mapSize.yMin, _mapSize.zMin));
+        Handles.DrawLine(new Vector3(_mapSize.max.x, _mapSize.max.y, _mapSize.max.z), new Vector3(_mapSize.max.x, _mapSize.min.y, _mapSize.max.z));
+        Handles.DrawLine(new Vector3(_mapSize.min.x, _mapSize.max.y, _mapSize.max.z), new Vector3(_mapSize.min.x, _mapSize.min.y, _mapSize.max.z));
+        Handles.DrawLine(new Vector3(_mapSize.min.x, _mapSize.max.y, _mapSize.min.z), new Vector3(_mapSize.min.x, _mapSize.min.y, _mapSize.min.z));
+        Handles.DrawLine(new Vector3(_mapSize.max.x, _mapSize.max.y, _mapSize.min.z), new Vector3(_mapSize.max.x, _mapSize.min.y, _mapSize.min.z));
         #endregion
 
         #region Draw Cell Size
         Handles.color = Color.white;
-        uint xCount = (uint)System.Math.Truncate((_mapSize.xMax - _mapSize.xMin) / _cellSize);
-        uint yCount = (uint)System.Math.Truncate((_mapSize.yMax - _mapSize.yMin) / _cellHeight);
-        uint zCount = (uint)System.Math.Truncate((_mapSize.zMax - _mapSize.zMin) / _cellSize);
+        uint xCount = (uint)System.Math.Truncate((_mapSize.max.x - _mapSize.min.x) / _cellSize);
+        uint yCount = (uint)System.Math.Truncate((_mapSize.max.y - _mapSize.min.y) / _cellHeight);
+        uint zCount = (uint)System.Math.Truncate((_mapSize.max.z - _mapSize.min.z) / _cellSize);
         ////for (int i = 1; i <= yCount; ++i)
         //{
-        //    //float y = _mapSize.yMin + (i * _cellHeight);
-        //    float y = _mapSize.yMin;
+        //    //float y = _mapSize.min.y + (i * _cellHeight);
+        //    float y = _mapSize.min.y;
         //    for (int j = 1; j <= zCount; ++j)
         //    {
         //        for (int k = 1; k < xCount; ++k)
         //        {
-        //            Handles.DrawLine(new Vector3(_mapSize.xMin + (k * _cellSize), y, _mapSize.zMin), new Vector3(_mapSize.xMin + (k * _cellSize), y, _mapSize.zMax));
+        //            Handles.DrawLine(new Vector3(_mapSize.min.x + (k * _cellSize), y, _mapSize.min.z), new Vector3(_mapSize.min.x + (k * _cellSize), y, _mapSize.max.z));
         //        }
-        //        Handles.DrawLine(new Vector3(_mapSize.xMin, y, _mapSize.zMin + (j * _cellSize)), new Vector3(_mapSize.xMax, y, _mapSize.zMin + (j * _cellSize)));
+        //        Handles.DrawLine(new Vector3(_mapSize.min.x, y, _mapSize.min.z + (j * _cellSize)), new Vector3(_mapSize.max.x, y, _mapSize.min.z + (j * _cellSize)));
         //    }
         //}
         #endregion
@@ -112,14 +113,14 @@ public class NavMeshScannerWindow : EditorWindow
     [DrawGizmo(GizmoType.NotInSelectionHierarchy | GizmoType.Selected)]
     static void DrawGizmo(GizmoDummy dummy, GizmoType gizmoType)
     {
-        //uint xCount = (uint)System.Math.Truncate((_mapSize.xMax - _mapSize.xMin) / _cellSize);
-        //uint yCount = (uint)System.Math.Truncate((_mapSize.yMax - _mapSize.yMin) / _cellHeight);
-        //uint zCount = (uint)System.Math.Truncate((_mapSize.zMax - _mapSize.zMin) / _cellSize);
+        //uint xCount = (uint)System.Math.Truncate((_mapSize.max.x - _mapSize.min.x) / _cellSize);
+        //uint yCount = (uint)System.Math.Truncate((_mapSize.max.y - _mapSize.min.y) / _cellHeight);
+        //uint zCount = (uint)System.Math.Truncate((_mapSize.max.z - _mapSize.min.z) / _cellSize);
         //for (int i = 1; i <= zCount; ++i)
         //{
         //    for (int j = 1; j <= xCount; ++j)
         //    {
-        //        Gizmos.DrawCube(new Vector3(_mapSize.xMin + (j * _cellSize) - (_cellSize * 0.5f), 0f, _mapSize.zMin + (i * _cellSize) - (_cellSize * 0.5f)), new Vector3(_cellSize, _cellHeight, _cellSize));
+        //        Gizmos.DrawCube(new Vector3(_mapSize.min.x + (j * _cellSize) - (_cellSize * 0.5f), 0f, _mapSize.min.z + (i * _cellSize) - (_cellSize * 0.5f)), new Vector3(_cellSize, _cellHeight, _cellSize));
         //    }
         //}
     }
@@ -136,15 +137,26 @@ public class NavMeshScannerWindow : EditorWindow
         List<string> layerNames = new List<string>();
         for(int i = 0; i < 32; ++i)
         {
-            if(LayerMask.LayerToName(i).Length != 0)
+            if (LayerMask.LayerToName(i).Length != 0)
                 layerNames.Add(LayerMask.LayerToName(i));
         }
-        _pathLayerMask = EditorGUILayout.MaskField("Path",_pathLayerMask, layerNames.ToArray());
-        _obstacleLayerMask = EditorGUILayout.MaskField("Obstacles", _obstacleLayerMask, layerNames.ToArray());
+
+        _pathMask = EditorGUILayout.MaskField("Path",_pathMask, layerNames.ToArray());
+        _obstacleMask = EditorGUILayout.MaskField("Obstacles", _obstacleMask, layerNames.ToArray());
 
         if (GUILayout.Button("Scan the map"))
         {
-            _mapSize = ZKit.PathFinder.UUtil.ScanMapSize3D(_pathLayerMask, _obstacleLayerMask);
+            List<string> pathLayers = new List<string>();
+            List<string> obstacleMask = new List<string>();
+            for (int i = 1; i <= layerNames.Count; ++i)
+            {
+                if ((_pathMask & (1 << i)) > 0) pathLayers.Add(layerNames[i]);
+                if ((_obstacleMask & (1 << i)) > 0) obstacleMask.Add(layerNames[i]);
+            }
+
+            VoxelSpace.Instance.InitVoxelSpace(_cellSize, _cellHeight, LayerMask.GetMask(pathLayers.ToArray()), LayerMask.GetMask(obstacleMask.ToArray()));
+            _mapSize = VoxelSpace.Instance.SpaceSize;
+            VoxelSpace.Instance.ScanVoxelSpace();
         }
 
         if(GUILayout.Button("ddkfk"))
@@ -165,9 +177,9 @@ public class NavMeshScannerWindow : EditorWindow
         root = new GameObject("Debug Voxels");
         //root.hideFlags = HideFlags.HideAndDontSave;
 
-        uint xCount = (uint)System.Math.Truncate((_mapSize.xMax - _mapSize.xMin) / _cellSize);
-        uint yCount = (uint)System.Math.Truncate((_mapSize.yMax - _mapSize.yMin) / _cellHeight);
-        uint zCount = (uint)System.Math.Truncate((_mapSize.zMax - _mapSize.zMin) / _cellSize);
+        uint xCount = (uint)System.Math.Truncate((_mapSize.max.x - _mapSize.min.x) / _cellSize);
+        uint yCount = (uint)System.Math.Truncate((_mapSize.max.y - _mapSize.min.y) / _cellHeight);
+        uint zCount = (uint)System.Math.Truncate((_mapSize.max.z - _mapSize.min.z) / _cellSize);
         for (int i = 1; i <= zCount; ++i)
         {
             for (int j = 1; j <= xCount; ++j)
@@ -182,7 +194,7 @@ public class NavMeshScannerWindow : EditorWindow
                 mr.reflectionProbeUsage = UnityEngine.Rendering.ReflectionProbeUsage.Off;
 
                 newMesh.transform.parent = root.transform;
-                newMesh.transform.position = new Vector3(_mapSize.xMin + (j * _cellSize) - (_cellSize * 0.5f), 0f, _mapSize.zMin + (i * _cellSize) - (_cellSize * 0.5f));
+                newMesh.transform.position = new Vector3(_mapSize.min.x + (j * _cellSize) - (_cellSize * 0.5f), 0f, _mapSize.min.z + (i * _cellSize) - (_cellSize * 0.5f));
                 newMesh.transform.localScale = new Vector3(_cellSize, _cellHeight, _cellSize);
             }
         }
