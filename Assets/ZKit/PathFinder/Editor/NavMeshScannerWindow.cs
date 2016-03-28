@@ -154,9 +154,9 @@ public class NavMeshScannerWindow : EditorWindow
                 if ((_obstacleMask & (1 << i)) > 0) obstacleMask.Add(layerNames[i]);
             }
 
-            VoxelSpace.Instance.InitVoxelSpace(_cellSize, _cellHeight, LayerMask.GetMask(pathLayers.ToArray()), LayerMask.GetMask(obstacleMask.ToArray()));
-            _mapSize = VoxelSpace.Instance.SpaceSize;
-            VoxelSpace.Instance.ScanVoxelSpace();
+            Voxel.Instance.InitVoxelArea(_cellSize, _cellHeight, LayerMask.GetMask(pathLayers.ToArray()), LayerMask.GetMask(obstacleMask.ToArray()));
+            _mapSize = Voxel.Instance.VoxelArea.AreaSize;
+            Voxel.Instance.ScanVoxelSpace();
         }
 
         if(GUILayout.Button("ddkfk"))

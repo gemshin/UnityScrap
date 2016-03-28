@@ -51,33 +51,54 @@ namespace ZKit.PathFinder
         }
     }
 
-    public class VoxelSpace : NonPubSingleton<VoxelSpace>
+    public class VoxelArea
     {
-        private bool _setDone = false;
-        private Bounds _spaceSize;
+        private Bounds _size;
         private float _cellSize;
         private float _cellHeight;
-        private VoxelSpan[] _voxelSpawn;
+        private uint _widthCount;
+        private uint _depthCount;
+        private uint _heightCount;
+
+        private VoxelSpan[] _voxelSpans;
+        private VoxelCell[] _voxelCells;
+
+        public float CellSize { get { return _cellSize; } }
+        public float CellHeight { get { return _cellHeight; } }
+        public Bounds AreaSize { get { return _size; } }
+
+        public VoxelCell VoxelCell(int x, int z) { return _voxelCells[x + (z * _widthCount)]; }
+
+        public VoxelArea(Bounds areaSize, float cellSize, float cellHeight)
+        {
+            _cellSize = cellSize;
+            _cellHeight = cellHeight;
+            _size = areaSize;
+
+            _widthCount = (uint)Mathf.Ceil(areaSize.size.x / cellSize);
+            _depthCount = (uint)Mathf.Ceil(areaSize.size.z / cellSize);
+            _heightCount = (uint)Mathf.Ceil(areaSize.size.y / cellHeight);
+
+            _voxelCells = new VoxelCell[_widthCount * _depthCount];
+        }
+    }
+
+    public class Voxel : NonPubSingleton<Voxel>
+    {
+        private VoxelArea _area;
 
         private List<SimpleMesh> _inObjects = new List<SimpleMesh>();
 
         private int _pathLayerMask = 0;
         private int _obstacleLayerMask = 0;
 
-        public Bounds SpaceSize { get { return _spaceSize; } }
-        public float CellSize { get { return _cellSize; } }
-        public float CellHeight { get { return _cellHeight; } }
+        public VoxelArea VoxelArea { get { return _area; } }
 
-        public void InitVoxelSpace(float cellSize, float cellHeight, int pathLayerMask, int obstacleLayerMask)
+        public void InitVoxelArea(float cellSize, float cellHeight, int pathLayerMask, int obstacleLayerMask)
         {
-            _setDone = false;
-            _cellSize = cellSize;
-            _cellHeight = cellHeight;
             _pathLayerMask = pathLayerMask;
             _obstacleLayerMask = obstacleLayerMask;
-
-            _spaceSize = UUtil.ScanMapSize3D(_pathLayerMask, _obstacleLayerMask);
-
+            _area = new VoxelArea(UUtil.ScanMapSize3D(_pathLayerMask, _obstacleLayerMask), cellSize, cellHeight);
             _inObjects.Clear();
         }
 
@@ -89,8 +110,6 @@ namespace ZKit.PathFinder
 
         private void CollectObjects()
         {
-            if (_setDone) return;
-
             //var cachedVertices = new Dictionary<Mesh, Vector3[]>();
             //var cachedTris = new Dictionary<Mesh, int[]>();
 
@@ -100,7 +119,7 @@ namespace ZKit.PathFinder
                 if (filter.sharedMesh == null || !renderer.enabled) continue;
                 if (((_pathLayerMask | _obstacleLayerMask) & (1 << filter.gameObject.layer)) == 0) continue;
                 
-                if( _spaceSize.Intersects(renderer.bounds) )
+                if( _area.AreaSize.Intersects(renderer.bounds) )
                 {
                     Mesh mesh = filter.sharedMesh;
                     SimpleMesh smesh = new SimpleMesh();
@@ -124,23 +143,33 @@ namespace ZKit.PathFinder
                     _inObjects.Add(smesh);
                 }
             }
-            _setDone = true;
         }
         private void Voxelize()
         {
-
+            foreach(var obj in _inObjects)
+            {
+                foreach(var ele in obj._triangles)
+                {
+                    
+                }
+                break;
+            }
         }
     }
 
-    public class VoxelSpan // 판때기인듯.
+    public class VoxelSpan
     {
-        private uint _spawn;
-        //private VoxelCell _voxelCell;
-        private VoxelCell[] _voxelCell;
+        private uint y;
+        private uint h;
+
+        public VoxelSpan next;
+
     }
 
     public class VoxelCell
     {
         private uint index;
+
+        private VoxelSpan span;
     }
 }
