@@ -53,33 +53,102 @@ namespace ZKit.PathFinder
 
     public class VoxelArea
     {
-        private Bounds _size;
+        private Bounds _bound;
         private float _cellSize;
         private float _cellHeight;
         private uint _widthCount;
         private uint _depthCount;
         private uint _heightCount;
 
-        private VoxelSpan[] _voxelSpans;
+        //private VoxelSpan[] _voxelSpans;
         private VoxelCell[] _voxelCells;
 
         public float CellSize { get { return _cellSize; } }
         public float CellHeight { get { return _cellHeight; } }
-        public Bounds AreaSize { get { return _size; } }
+        public Bounds AreaBound { get { return _bound; } }
 
-        public VoxelCell VoxelCell(int x, int z) { return _voxelCells[x + (z * _widthCount)]; }
-
-        public VoxelArea(Bounds areaSize, float cellSize, float cellHeight)
+        public VoxelArea(Bounds areaBound, float cellSize, float cellHeight)
         {
             _cellSize = cellSize;
             _cellHeight = cellHeight;
-            _size = areaSize;
+            _bound = areaBound;
 
-            _widthCount = (uint)Mathf.Ceil(areaSize.size.x / cellSize);
-            _depthCount = (uint)Mathf.Ceil(areaSize.size.z / cellSize);
-            _heightCount = (uint)Mathf.Ceil(areaSize.size.y / cellHeight);
+            _widthCount = (uint)Mathf.Ceil(areaBound.size.x / cellSize);
+            _depthCount = (uint)Mathf.Ceil(areaBound.size.z / cellSize);
+            _heightCount = (uint)Mathf.Ceil(areaBound.size.y / cellHeight);
 
-            _voxelCells = new VoxelCell[_widthCount * _depthCount];
+            _voxelCells = new VoxelCell[_widthCount * _heightCount * _depthCount];
+        }
+
+        /// <summary>
+        /// Get Cell
+        /// </summary>
+        /// <param name="x">Horizontal count</param>
+        /// <param name="y">Vertical count</param>
+        /// <param name="z">Depth count</param>
+        /// <returns>VoxelCell</returns>
+        public VoxelCell GetCell(uint x, uint y, uint z) { return _voxelCells[x + (y*_widthCount) + (z * (_widthCount*_heightCount))]; }
+        /// <summary>
+        /// Get Cell
+        /// </summary>
+        /// <param name="index">index</param>
+        /// <returns>VoxelCell</returns>
+        public VoxelCell GetCell(uint index) { return _voxelCells[index]; }
+        /// <summary>
+        /// Get Cell
+        /// </summary>
+        /// <param name="point">Point position(world)</param>
+        /// <returns></returns>
+        public VoxelCell GetCell(Vector3 point)
+        {
+            int x, y, z;
+            if (!GetCellCount(point, out x, out y, out z)) return null;
+            return GetCell((uint)x, (uint)y, (uint)z);
+        }
+        /// <summary>
+        /// Get Index
+        /// </summary>
+        /// <param name="x">Horizontal count</param>
+        /// <param name="y">Vertical count</param>
+        /// <param name="z">Depth count</param>
+        /// <returns>index</returns>
+        public uint GetIndex(uint x, uint y, uint z) { return (x + (y * _widthCount) + (z * _widthCount * _heightCount)); }
+        /// <summary>
+        /// Get Cell Count
+        /// </summary>
+        /// <param name="index">index</param>
+        /// <param name="x">out Horizontal count</param>
+        /// <param name="y">out Vertical count</param>
+        /// <param name="z">out Depth count</param>
+        /// <returns>Success or Fail</returns>
+        public bool GetCellCount(uint index, out int x, out int y, out int z)
+        {
+            x = y = z = 0;
+            if (index >= _voxelCells.Length) return false;
+
+            z = Mathf.FloorToInt(index / (_widthCount * _heightCount));
+            y = Mathf.FloorToInt((index - z) / _widthCount);
+            x = Mathf.FloorToInt((index - z) % _widthCount);
+            return true;
+        }
+        /// <summary>
+        /// Get Cell Count
+        /// </summary>
+        /// <param name="point">Point position(world)</param>
+        /// <param name="x">out Horizontal count</param>
+        /// <param name="y">out Vertical count</param>
+        /// <param name="z">out Depth count</param>
+        /// <returns>Success or Fail</returns>
+        public bool GetCellCount(Vector3 point, out int x, out int y, out int z)
+        {
+            x = y = z = 0;
+            if (!_bound.Contains(point)) return false;
+
+            var areaPosition = point - _bound.min;
+            x = Mathf.FloorToInt(_cellSize / areaPosition.x);
+            y = Mathf.FloorToInt(_cellHeight / areaPosition.y);
+            z = Mathf.FloorToInt(_cellSize / areaPosition.z);
+            return true;
         }
     }
 
@@ -119,7 +188,7 @@ namespace ZKit.PathFinder
                 if (filter.sharedMesh == null || !renderer.enabled) continue;
                 if (((_pathLayerMask | _obstacleLayerMask) & (1 << filter.gameObject.layer)) == 0) continue;
                 
-                if( _area.AreaSize.Intersects(renderer.bounds) )
+                if( _area.AreaBound.Intersects(renderer.bounds) )
                 {
                     Mesh mesh = filter.sharedMesh;
                     SimpleMesh smesh = new SimpleMesh();
@@ -148,11 +217,19 @@ namespace ZKit.PathFinder
         {
             foreach(var obj in _inObjects)
             {
-                foreach(var ele in obj._triangles)
-                {
-                    
-                }
-                break;
+                VoxelizeObject(obj);
+            }
+        }
+
+        private void VoxelizeObject(SimpleMesh mesh)
+        {
+            VoxelArea va = VoxelArea;
+
+            for (int i = 0; i < mesh._triangles.Length; i+=3)
+            {
+                var p1 = mesh._vertices[i];
+                var p2 = mesh._vertices[i + 1];
+                var p3 = mesh._vertices[i + 2];
             }
         }
     }

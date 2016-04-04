@@ -155,7 +155,7 @@ public class NavMeshScannerWindow : EditorWindow
             }
 
             Voxel.Instance.InitVoxelArea(_cellSize, _cellHeight, LayerMask.GetMask(pathLayers.ToArray()), LayerMask.GetMask(obstacleMask.ToArray()));
-            _mapSize = Voxel.Instance.VoxelArea.AreaSize;
+            _mapSize = Voxel.Instance.VoxelArea.AreaBound;
             Voxel.Instance.ScanVoxelSpace();
         }
 
