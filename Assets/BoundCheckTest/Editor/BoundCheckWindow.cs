@@ -48,7 +48,7 @@ public class BoundCheckWindow : EditorWindow
     #endregion
 
     #region testBox
-    private static Box _testBox = new Box();
+    private static Box2D _testBox = new Box2D();
     #endregion
 
     #region testCircle
@@ -58,7 +58,7 @@ public class BoundCheckWindow : EditorWindow
     private static Color _lineColor = Color.red;
 
     #region box
-    private static Box _box = new Box();
+    private static Box2D _box = new Box2D();
     #endregion
 
     #region cube

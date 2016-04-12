@@ -16,8 +16,9 @@ public class NavMeshScannerWindow : EditorWindow
     static float _cellSize = 1f;
     static float _cellHeight = 1f;
 
-
     static bool _debug_DrawVoxel = false;
+    static bool _debug_DrawGrid = false;
+    static bool _debug_DrawLabel = false;
 
     [MenuItem("TEST/NavMeshScanner")]
     static void Init()
@@ -57,72 +58,75 @@ public class NavMeshScannerWindow : EditorWindow
         Handles.DrawLine(new Vector3(_mapSize.max.x, _mapSize.max.y, _mapSize.min.z), new Vector3(_mapSize.max.x, _mapSize.min.y, _mapSize.min.z));
         #endregion
 
-        #region Draw Cell Size
-        Handles.color = Color.white;
-        uint xCount = (uint)System.Math.Truncate((_mapSize.max.x - _mapSize.min.x) / _cellSize);
-        uint yCount = (uint)System.Math.Truncate((_mapSize.max.y - _mapSize.min.y) / _cellHeight);
-        uint zCount = (uint)System.Math.Truncate((_mapSize.max.z - _mapSize.min.z) / _cellSize);
-        ////for (int i = 1; i <= yCount; ++i)
-        //{
-        //    //float y = _mapSize.min.y + (i * _cellHeight);
-        //    float y = _mapSize.min.y;
-        //    for (int j = 1; j <= zCount; ++j)
-        //    {
-        //        for (int k = 1; k < xCount; ++k)
-        //        {
-        //            Handles.DrawLine(new Vector3(_mapSize.min.x + (k * _cellSize), y, _mapSize.min.z), new Vector3(_mapSize.min.x + (k * _cellSize), y, _mapSize.max.z));
-        //        }
-        //        Handles.DrawLine(new Vector3(_mapSize.min.x, y, _mapSize.min.z + (j * _cellSize)), new Vector3(_mapSize.max.x, y, _mapSize.min.z + (j * _cellSize)));
-        //    }
-        //}
+        var va = Voxel.Instance.VoxelArea;
+
+        #region Draw Label
+        if (va != null && _debug_DrawLabel == true)
+        {
+            Handles.color = Color.white;
+
+            uint xCount = va.WidthCount;
+            uint yCount = va.HeightCount;
+            uint zCount = va.DepthCount;
+            for (int i = 0; i < yCount; ++i)
+            {
+                float y = _mapSize.min.y + (i * _cellHeight);
+                for (int j = 0; j < zCount; ++j)
+                {
+                    for (int k = 0; k < xCount; ++k)
+                    {
+                        uint index;
+                        Vector3 position;
+                        if (!va.GetCellIndex(out index, (uint)k, (uint)i, (uint)j)) continue;
+                        if (!va.GetCellPosition(index, out position)) continue;
+                        Handles.Label(position, string.Format("{0}", index));
+                    }
+                }
+            }
+        }
         #endregion
 
-        //List<string> layerNames = new List<string>();
-        //for (int i = 0; i < 32; ++i)
-        //{
-        //    if (LayerMask.LayerToName(i).Length != 0)
-        //        layerNames.Add(LayerMask.LayerToName(i));
-        //}
-        //List<string> pathLayers = new List<string>();
-        //for (int i = 0; i < layerNames.Count; ++i)
-        //{
-        //    if ((_pathLayerMask & (1 << i)) != 0)
-        //        pathLayers.Add(layerNames[i]);
-        //}
-        //int pathLayerMask = LayerMask.GetMask(pathLayers.ToArray());
+        #region Draw Cell Grid
+        if (va != null && _debug_DrawGrid == true)
+        {
+            Handles.color = Color.white;
 
-        //GameObject[] gameObjects = (GameObject[])FindObjectsOfType(typeof(GameObject));
-        //foreach (GameObject go in gameObjects)
-        //{
-        //    if ((pathLayerMask & (1 << go.layer)) == 0) continue;
-
-        //    MeshFilter mf = go.GetComponent<MeshFilter>();
-        //    if (!mf) continue;
-        //    if (!mf.sharedMesh) continue;
-
-        //    foreach (var vertex in mf.sharedMesh.vertices)
-        //    {
-        //        Vector3 v = vertex;
-        //        v.Scale(go.transform.localScale);
-        //        v = go.transform.rotation * v;
-        //        Handles.DotCap(0, (go.transform.position + (v)), Quaternion.identity, 0.05f);
-        //    }
-        //}
+            uint xCount = va.WidthCount;
+            uint yCount = va.HeightCount;
+            uint zCount = va.DepthCount;
+            //for (int i = 1; i <= yCount; ++i)
+            {
+                //float y = _mapSize.min.y + (i * _cellHeight);
+                float y = _mapSize.min.y;
+                for (int j = 1; j <= zCount; ++j)
+                {
+                    for (int k = 1; k < xCount; ++k)
+                    {
+                        Handles.DrawLine(new Vector3(_mapSize.min.x + (k * _cellSize), y, _mapSize.min.z), new Vector3(_mapSize.min.x + (k * _cellSize), y, _mapSize.max.z));
+                    }
+                    Handles.DrawLine(new Vector3(_mapSize.min.x, y, _mapSize.min.z + (j * _cellSize)), new Vector3(_mapSize.max.x, y, _mapSize.min.z + (j * _cellSize)));
+                }
+            }
+        }
+        #endregion
     }
 
     [DrawGizmo(GizmoType.NotInSelectionHierarchy | GizmoType.Selected)]
     static void DrawGizmo(GizmoDummy dummy, GizmoType gizmoType)
     {
-        //uint xCount = (uint)System.Math.Truncate((_mapSize.max.x - _mapSize.min.x) / _cellSize);
-        //uint yCount = (uint)System.Math.Truncate((_mapSize.max.y - _mapSize.min.y) / _cellHeight);
-        //uint zCount = (uint)System.Math.Truncate((_mapSize.max.z - _mapSize.min.z) / _cellSize);
-        //for (int i = 1; i <= zCount; ++i)
-        //{
-        //    for (int j = 1; j <= xCount; ++j)
-        //    {
-        //        Gizmos.DrawCube(new Vector3(_mapSize.min.x + (j * _cellSize) - (_cellSize * 0.5f), 0f, _mapSize.min.z + (i * _cellSize) - (_cellSize * 0.5f)), new Vector3(_cellSize, _cellHeight, _cellSize));
-        //    }
-        //}
+        var va = Voxel.Instance.VoxelArea;
+        #region Draw Voxel
+        if (va != null && _debug_DrawVoxel == true)
+        {
+            Gizmos.color = Color.blue;
+            foreach (var ele in va.WalkableCells)
+            {
+                Vector3 tmp;
+                if (!va.GetCellPosition(ele.Index, out tmp)) continue;
+                Gizmos.DrawWireCube(tmp, new Vector3(_cellSize, _cellHeight, _cellSize));
+            }
+        }
+        #endregion
     }
 
     private void OnGUI()
@@ -164,7 +168,9 @@ public class NavMeshScannerWindow : EditorWindow
             CreateDebugVoxel();
         }
 
-        _debug_DrawVoxel = EditorGUILayout.Toggle(_debug_DrawVoxel);
+        _debug_DrawGrid = EditorGUILayout.Toggle("Show Grid", _debug_DrawGrid);
+        _debug_DrawVoxel = EditorGUILayout.Toggle("Show Voxel", _debug_DrawVoxel);
+        _debug_DrawLabel = EditorGUILayout.Toggle("Show Label", _debug_DrawLabel);
         EditorGUILayout.EndVertical();
 
         SceneView.RepaintAll();

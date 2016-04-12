@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 namespace ZKit.Math.Geometry
 {
@@ -21,8 +22,7 @@ namespace ZKit.Math.Geometry
             Vector2 b = b2 - b1;
             float aDotbPerp = a.x * b.y - a.y * b.x;
 
-            // if b dot d == 0, it means the lines are parallel so have infinite intersection points
-            if (aDotbPerp == 0)
+            if (aDotbPerp == 0) // 수직.
                 return false;
 
             Vector2 c = b1 - a1;
@@ -57,7 +57,7 @@ namespace ZKit.Math.Geometry
             tangentL = circle_position + new Vector2(-Mathf.Sin(circleAng + tanAng), Mathf.Cos(circleAng + tanAng)) * circle_radius;
         }
         /// <summary>
-        /// 원의 외접선 각도를 구한다. 기준은 (0,1)
+        /// 원의 외접선 각도를 구한다. vec(1,0) 기준 각도.
         /// </summary>
         /// <param name="circle_position">윈의 위치</param>
         /// <param name="circle_radius">원의 반지름</param>
@@ -75,7 +75,6 @@ namespace ZKit.Math.Geometry
             tanRadR = circleAng + tanAng;
             tanRadL = circleAng - tanAng;
 
-
             if (tanRadR < 0f) tanRadR += 2f * Mathf.PI;
             if (tanRadL < 0f) tanRadL += 2f * Mathf.PI;
 
@@ -85,8 +84,13 @@ namespace ZKit.Math.Geometry
                 tanRadL = tanRadL > Mathf.PI ? -(2f * Mathf.PI - tanRadL) : tanRadL;
             }
         }
-
-        public static bool CollisionDetect2DDot(Box box, Vector2 dot_position)
+        /// <summary>
+        /// 점과 박스의 충돌을 검사한다.
+        /// </summary>
+        /// <param name="box">박스</param>
+        /// <param name="dot_position">점 위치</param>
+        /// <returns>충돌 했다. 안했다.</returns>
+        public static bool CollisionDetect2DDot(Box2D box, Vector2 dot_position)
         {
             Vector2 boxSpaceDot = dot_position - box.Position2D;
             float boxRadius = Mathf.Sqrt((box.size.x * box.size.x) + (box.size.y * box.size.y)) * 0.5f;
@@ -106,6 +110,12 @@ namespace ZKit.Math.Geometry
             }
             return false;
         }
+        /// <summary>
+        /// 점과 원의 충돌을 검사한다.
+        /// </summary>
+        /// <param name="circle">원</param>
+        /// <param name="dot_position">점 위치</param>
+        /// <returns>충돌 했다. 안했다</returns>
         public static bool CollisionDetect2DDot(Circle circle, Vector2 dot_position)
         {
             Vector2 circleSpaceDot = dot_position - circle.position2D;
@@ -113,8 +123,14 @@ namespace ZKit.Math.Geometry
                 return true;
             return false;
         }
-
-        public static bool CollisionDetect2DLine(Box box, Vector2 lineStart_position, Vector2 lineEnd_position)
+        /// <summary>
+        /// 선과 박스의 충돌을 검사한다.
+        /// </summary>
+        /// <param name="box">박스</param>
+        /// <param name="lineStart_position">선 시작 위치</param>
+        /// <param name="lineEnd_position">선 끝 위치</param>
+        /// <returns>충돌 했다. 안했다</returns>
+        public static bool CollisionDetect2DLine(Box2D box, Vector2 lineStart_position, Vector2 lineEnd_position)
         {
             Vector2 boxSpaceStart = lineStart_position - box.Position2D;
             Vector2 boxSpaceEnd = lineEnd_position - box.Position2D;
@@ -150,6 +166,13 @@ namespace ZKit.Math.Geometry
 
             return false;
         }
+        /// <summary>
+        /// 선과 원의 충돌을 검사한다.
+        /// </summary>
+        /// <param name="circle">원</param>
+        /// <param name="lineStart_position">선 시작 위치</param>
+        /// <param name="lineEnd_position">선 끝 위치</param>
+        /// <returns>충돌 했다. 안했다</returns>
         public static bool CollisionDetect2DLine(Circle circle, Vector2 lineStart_position, Vector2 lineEnd_position)
         {
             Vector2 circleSpaceStart = lineStart_position - circle.position2D;
@@ -168,11 +191,24 @@ namespace ZKit.Math.Geometry
             if (di < 0) return false;
             return true;
         }
-
-        public static bool CollisionDetect2DRay(Box box, Vector2 lineStart_position, Vector2 line_direction)
+        /// <summary>
+        /// Ray와 박스의 충돌을 검사한다.
+        /// </summary>
+        /// <param name="box">박스</param>
+        /// <param name="lineStart_position">선 시작 위치</param>
+        /// <param name="line_direction">선 끝 위치</param>
+        /// <returns>충돌 했다. 안했다</returns>
+        public static bool CollisionDetect2DRay(Box2D box, Vector2 lineStart_position, Vector2 line_direction)
         {
             return CollisionDetect2DLine(box, lineStart_position, lineStart_position + (line_direction * 1000.0f));
         }
+        /// <summary>
+        /// Ray와 원의 충돌을 검사한다.
+        /// </summary>
+        /// <param name="circle">원</param>
+        /// <param name="lineStart_position">선 시작 위치</param>
+        /// <param name="line_direction">선 끝 위치</param>
+        /// <returns>충돌 했다. 안했다</returns>
         public static bool CollisionDetect2DRay(Circle circle, Vector2 lineStart_position, Vector2 line_direction)
         {
             Vector2 circleSpaceStart = lineStart_position - circle.position2D;
@@ -187,32 +223,76 @@ namespace ZKit.Math.Geometry
             return true;
         }
 
-        public static bool CollisionDetect2DBox(Vector2 dot_position, Box box)
+        /// <summary>
+        /// 박스와 점의 충돌을 검사한다.
+        /// </summary>
+        /// <param name="dot_position">점 위치</param>
+        /// <param name="box">박스</param>
+        /// <returns>충돌 했다. 안했다.</returns>
+        public static bool CollisionDetect2DBox(Vector2 dot_position, Box2D box)
         {
             return CollisionDetect2DDot(box, dot_position);
         }
-        public static bool CollisionDetect2DBox(Vector2 lineStart_position, Vector2 lineEnd_position, Box box)
+        /// <summary>
+        /// 박스와 선의 충돌을 검사한다.
+        /// </summary>
+        /// <param name="lineStart_position">선 시작 위치</param>
+        /// <param name="lineEnd_position">선 끝 위치</param>
+        /// <param name="box">박스</param>
+        /// <returns>충돌 했다. 안했다.</returns>
+        public static bool CollisionDetect2DBox(Vector2 lineStart_position, Vector2 lineEnd_position, Box2D box)
         {
             return CollisionDetect2DLine(box, lineStart_position, lineEnd_position);
         }
-        public static bool CollisionDetect2DBox(Box box, Box box_a)
+        /// <summary>
+        /// 박스와 박스의 충돌을 검사한다. todo : 작업해야함.
+        /// </summary>
+        /// <param name="box">박스</param>
+        /// <param name="box_a">박스</param>
+        /// <returns>충돌 했다. 안했다.</returns>
+        public static bool CollisionDetect2DBox(Box2D box, Box2D box_a)
         {
             return false;
         } // 작업중.
-        public static bool CollisionDetect2DBox(Circle circle, Box box)
+        /// <summary>
+        /// 박스와 원의 충돌을 검사한다.
+        /// </summary>
+        /// <param name="circle">원</param>
+        /// <param name="box">박스</param>
+        /// <returns>충돌 했다. 안했다.</returns>
+        public static bool CollisionDetect2DBox(Circle circle, Box2D box)
         {
             return CollisionDetect2DCircle(box, circle);
         }
 
+        /// <summary>
+        /// 원과 점의 충돌을 검사한다.
+        /// </summary>
+        /// <param name="dot_position">점 위치</param>
+        /// <param name="circle">원</param>
+        /// <returns>충돌 했다. 안했다.</returns>
         public static bool CollisionDetect2DCircle(Vector2 dot_position, Circle circle)
         {
             return CollisionDetect2DDot(circle, dot_position);
         }
+        /// <summary>
+        /// 원과 선의 충돌을 검사한다.
+        /// </summary>
+        /// <param name="lineStart_position">선 시작 위치</param>
+        /// <param name="lineEnd_position">선 끝 위치</param>
+        /// <param name="circle">원</param>
+        /// <returns>충돌 했다. 안했다.</returns>
         public static bool CollisionDetect2DCircle(Vector2 lineStart_position, Vector2 lineEnd_position, Circle circle)
         {
             return CollisionDetect2DLine(circle, lineStart_position, lineEnd_position);
         }
-        public static bool CollisionDetect2DCircle(Box box, Circle circle)
+        /// <summary>
+        /// 원과 박스의 충돌을 검사한다.
+        /// </summary>
+        /// <param name="box">박스</param>
+        /// <param name="circle">원</param>
+        /// <returns>충돌을 했다. 안했다.</returns>
+        public static bool CollisionDetect2DCircle(Box2D box, Circle circle)
         {
             Vector2 boxSpaceCircle = circle.position2D - box.Position2D;
 
@@ -234,11 +314,23 @@ namespace ZKit.Math.Geometry
 
             return corner_distance_sq <= (circle.radius * circle.radius);
         }
+        /// <summary>
+        /// 원과 원의 충돌을 검사한다.
+        /// </summary>
+        /// <param name="circle">원</param>
+        /// <param name="circle_a">원</param>
+        /// <returns>충돌을 했다. 안했다.</returns>
         public static bool CollisionDetect2DCircle(Circle circle, Circle circle_a)
         {
             return (circle.position2D - circle_a.position2D).magnitude <= circle.radius + circle_a.radius;
         }
 
+        /// <summary>
+        /// 부채꼴과 점의 충돌을 검사한다.
+        /// </summary>
+        /// <param name="dot_position">점 위치</param>
+        /// <param name="sector">부채꼴</param>
+        /// <returns>충돌을 했다. 안했다.</returns>
         public static bool CollisionDetect2DSector(Vector2 dot_position, Sector sector)
         {
             Vector2 sectorSpaceDot = dot_position - sector.position2D;
@@ -270,6 +362,13 @@ namespace ZKit.Math.Geometry
 
             return false;
         }
+        /// <summary>
+        /// 부채꼴과 선의 충돌을 검사한다.
+        /// </summary>
+        /// <param name="lineStart_position">선 시작 위치</param>
+        /// <param name="lineEnd_position">선 끝 위치</param>
+        /// <param name="sector">부채꼴</param>
+        /// <returns>충돌을 했다. 안했다.</returns>
         public static bool CollisionDetect2DSector(Vector2 lineStart_position, Vector2 lineEnd_position, Sector sector)
         {
             //Vector2 sectorSpaceStart = lineStart_position - sector.position2D;
@@ -300,10 +399,22 @@ namespace ZKit.Math.Geometry
 
             return false;
         }
-        public static bool CollisionDetect2DSector(Box box, Sector sector)
+        /// <summary>
+        /// 부채꼴과 박스의 충돌을 검사한다.
+        /// </summary>
+        /// <param name="box">박스</param>
+        /// <param name="sector">부채꼴</param>
+        /// <returns>충돌을 했다. 안했다.</returns>
+        public static bool CollisionDetect2DSector(Box2D box, Sector sector)
         {
             return false;
         }
+        /// <summary>
+        /// 부채꼴과 원의 충돌을 검사한다.
+        /// </summary>
+        /// <param name="circle">원</param>
+        /// <param name="sector">부채꼴</param>
+        /// <returns>충돌을 했다. 안했다.</returns>
         public static bool CollisionDetect2DSector(Circle circle, Sector sector)
         {
             Vector2 sectorSpaceCircle = circle.position2D - sector.position2D;
@@ -358,6 +469,12 @@ namespace ZKit.Math.Geometry
 
             return false;
         }
+        /// <summary>
+        /// 부채꼴과 부채꼴의 충돌을 검사한다.
+        /// </summary>
+        /// <param name="sector">부채꼴</param>
+        /// <param name="sector_a">부채꼴</param>
+        /// <returns>충돌을 했다. 안했다.</returns>
         public static bool CollisionDetect2DSector(Sector sector, Sector sector_a)
         {
             return false;
@@ -399,6 +516,107 @@ namespace ZKit.Math.Geometry
         //		intersection2 = new PointF(point1.X + t * dx, point1.Y + t * dy);
         //		return 2;
         //	}
+        //}
+    }
+
+    public static class Collision3D
+    {
+        /// <summary>
+        /// 폴리곤과 박스의 충돌을 검사한다.
+        /// </summary>
+        /// <returns>충돌을 했다. 안했다.</returns>
+        public static bool CollisionDetectTriangle(Vector3 v)
+        {
+
+            return false;
+        }
+
+        //bool IsIntersecting(IAABox box, ITriangle triangle)
+        //{
+        //    double triangleMin, triangleMax;
+        //    double boxMin, boxMax;
+
+        //    // Test the box normals (x-, y- and z-axes)
+        //    var boxNormals = new IVector[] {
+        //        new Vector(1,0,0),
+        //        new Vector(0,1,0),
+        //        new Vector(0,0,1)
+        //    };
+        //    for (int i = 0; i < 3; i++)
+        //    {
+        //        IVector n = boxNormals[i];
+        //        Project(triangle.Vertices, boxNormals[i], out triangleMin, out triangleMax);
+        //        if (triangleMax < box.Start.Coords[i] || triangleMin > box.End.Coords[i])
+        //            return false; // No intersection possible.
+        //    }
+
+        //    // Test the triangle normal
+        //    double triangleOffset = triangle.Normal.Dot(triangle.A);
+        //    Project(box.Vertices, triangle.Normal, out boxMin, out boxMax);
+        //    if (boxMax < triangleOffset || boxMin > triangleOffset)
+        //        return false; // No intersection possible.
+
+        //    // Test the nine edge cross-products
+        //    IVector[] triangleEdges = new IVector[] {
+        //        triangle.A.Minus(triangle.B),
+        //        triangle.B.Minus(triangle.C),
+        //        triangle.C.Minus(triangle.A)
+        //    };
+        //    for (int i = 0; i < 3; i++)
+        //        for (int j = 0; j < 3; j++)
+        //        {
+        //            // The box normals are the same as it's edge tangents
+        //            IVector axis = triangleEdges[i].Cross(boxNormals[j]);
+        //            Project(box.Vertices, axis, out boxMin, out boxMax);
+        //            Project(triangle.Vertices, axis, out triangleMin, out triangleMax);
+        //            if (boxMax <= triangleMin || boxMin >= triangleMax)
+        //                return false; // No intersection possible
+        //        }
+
+        //    // No separating axis found.
+        //    return true;
+        //}
+
+        //void Project(IEnumerable<IVector> points, IVector axis, out double min, out double max)
+        //{
+        //    double min = double.PositiveInfinity;
+        //    double max = double.NegativeInfinity;
+        //    foreach (var p in points)
+        //    {
+        //        double val = axis.Dot(p);
+        //        if (val < min) min = val;
+        //        if (val > max) max = val;
+        //    }
+        //}
+
+        //interface IVector
+        //{
+        //    double X { get; }
+        //    double Y { get; }
+        //    double Z { get; }
+        //    double[] Coords { get; }
+        //    double Dot(IVector other);
+        //    IVector Minus(IVector other);
+        //    IVector Cross(IVector other);
+        //}
+
+        //interface IShape
+        //{
+        //    IEnumerable<IVector> Vertices { get; }
+        //}
+
+        //interface IAABox : IShape
+        //{
+        //    IVector Start { get; }
+        //    IVector End { get; }
+        //}
+
+        //interface ITriangle : IShape
+        //{
+        //    IVector Normal { get; }
+        //    IVector A { get; }
+        //    IVector B { get; }
+        //    IVector C { get; }
         //}
     }
 }

@@ -22,9 +22,9 @@ namespace ZKit.Math.Geometry
             rotate = Vector3.zero;
         }
 
-        public Box Get2Dbox()
+        public Box2D Get2Dbox()
         {
-            Box ret = new Box();
+            Box2D ret = new Box2D();
             ret.position = position;
             ret.size = new Vector2(size.x, size.z);
             ret.rotate_y = rotate.y;

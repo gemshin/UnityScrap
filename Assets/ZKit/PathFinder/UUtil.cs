@@ -56,7 +56,7 @@ namespace ZKit.PathFinder
             return result;
         }
 
-        public static Bounds ScanMapSize3D(int pathLayerMask, int obstacleLayerMask)
+        public static Bounds ScanMapSize3D(int pathLayerMask, int obstacleLayerMask, float gap = 0f)
         {
             TerrainCollider[] terrainColliders = (TerrainCollider[])GameObject.FindObjectsOfType(typeof(TerrainCollider));
 
@@ -83,8 +83,7 @@ namespace ZKit.PathFinder
             }
 
             var objects = GameObject.FindObjectsOfType<GameObject>();
-            if (/*objects != null && */(objects.Length > 0) && terrainColliders.Length <= 0) max = min = objects[0].transform.position;
-            //int layer = (1 << pathLayerMask) | (1 << obstacleLayerMask);
+            bool first = true;
             int layer = pathLayerMask | obstacleLayerMask;
             foreach (GameObject go in objects)
             {
@@ -93,6 +92,12 @@ namespace ZKit.PathFinder
                 MeshFilter mf = go.GetComponent<MeshFilter>();
                 if (!mf) continue;
                 if (!mf.sharedMesh) continue;
+
+                if(first)
+                {
+                    max = min = go.transform.position;
+                    first = false;
+                }
 
                 foreach (var vertex in mf.sharedMesh.vertices)
                 {
@@ -111,6 +116,8 @@ namespace ZKit.PathFinder
                     if (min.z > v.z) min.z = v.z;
                 }
             }
+            min -= Vector3.one*gap;
+            max += Vector3.one*gap;
             result.SetMinMax(min, max);
             return result;
         }

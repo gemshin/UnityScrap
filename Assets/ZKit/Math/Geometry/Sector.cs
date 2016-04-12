@@ -5,13 +5,12 @@ namespace ZKit.Math.Geometry
     public class Sector
     {
         public Vector3 position;
-        public Vector3 up { get {return Vector3.up;} } // sector is 2D
         public float rotate_y;
         public float angle;
         public float radius;
 
         public Vector2 position2D { get { return new Vector2(position.x, position.z); } }
-        
+        public Vector3 up { get { return Vector3.up; } } // sector is 2D        
         public Vector3 forward { get {return new Vector3(-Mathf.Sin(-rotate_y * Mathf.Deg2Rad), 0f, Mathf.Cos(-rotate_y * Mathf.Deg2Rad));} }
 
         public Vector3 leftLine
