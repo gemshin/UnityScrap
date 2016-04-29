@@ -36,9 +36,7 @@ namespace ZKit.Math.Geometry
         {
             Quaternion rot = Quaternion.AngleAxis(rotate.y, Vector3.up);
             Gizmos.matrix = Matrix4x4.TRS(position, rot, Vector3.one);
-
             Gizmos.DrawWireCube(Vector3.zero, size);
-
             Gizmos.matrix = Matrix4x4.identity;
         }
     }

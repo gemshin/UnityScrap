@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 namespace ZKit.Math.Geometry
 {
@@ -41,7 +42,79 @@ namespace ZKit.Math.Geometry
         }
     }
 
-    public class Box3D
+    public class AABox
+    {
+        private Vector3 _position;
+        private Vector3 _size;
+        private Vector3[] vertices = new Vector3[8];
+
+        public Vector3 Position
+        {
+            get { return _position; }
+            set { _position = value; Recalculate(); }
+        }
+
+        public Vector3 Size
+        {
+            get { return _size; }
+            set { _size = value; Recalculate(); }
+        }
+
+        public AABox()
+        {
+            _position = Vector3.zero;
+            _size = Vector3.one;
+
+            Recalculate();
+        }
+
+        public AABox(Vector3 Pos)
+        {
+            _position = Pos;
+            _size = Vector3.one;
+            Recalculate();
+        }
+
+        public AABox(Vector3 Pos, Vector3 size)
+        {
+            _position = Pos;
+            _size = size;
+            Recalculate();
+        }
+
+        private void Recalculate()
+        {
+            Vector3 halfSize = _size * 0.5f;
+            vertices[0] = new Vector3(-halfSize.x, -halfSize.y, halfSize.z) + _position;
+            vertices[1] = new Vector3(halfSize.x, -halfSize.y, halfSize.z) + _position;
+            vertices[2] = new Vector3(-halfSize.x, halfSize.y, halfSize.z) + _position;
+            vertices[3] = new Vector3(halfSize.x, halfSize.y, halfSize.z) + _position;
+            vertices[4] = new Vector3(-halfSize.x, -halfSize.y, -halfSize.z) + _position;
+            vertices[5] = new Vector3(halfSize.x, -halfSize.y, -halfSize.z) + _position;
+            vertices[6] = new Vector3(-halfSize.x, halfSize.y, -halfSize.z) + _position;
+            vertices[7] = new Vector3(halfSize.x, halfSize.y, -halfSize.z) + _position;
+        }
+
+        public IEnumerable<Vector3> Vertices
+        {
+            get
+            {
+                foreach (Vector3 point in vertices)
+                {
+                    yield return point;
+                }
+            }
+        }
+
+        public void DrawGizmo()
+        {
+            Gizmos.matrix = Matrix4x4.TRS(_position, Quaternion.identity, _size);
+            Gizmos.DrawWireCube(Vector3.zero, Vector3.one);
+            Gizmos.matrix = Matrix4x4.identity;
+        }
+    }
+
+    public class OBox
     {
         private Vector3 position;
         private Vector3 size;
@@ -80,7 +153,7 @@ namespace ZKit.Math.Geometry
             vertices[7] = mat.MultiplyPoint3x4(new Vector3( halfSize.x,  halfSize.y, -halfSize.z)) + position;
         }
 
-        public Box3D()
+        public OBox()
         {
             position = Vector3.zero;
             size = Vector3.one;
@@ -89,7 +162,7 @@ namespace ZKit.Math.Geometry
             Recalculate();
         }
 
-        public Box3D(Vector3 Pos)
+        public OBox(Vector3 Pos)
         {
             position = Pos;
             size = Vector3.one;

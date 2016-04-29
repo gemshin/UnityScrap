@@ -12,13 +12,18 @@ public class NavMeshScannerWindow : EditorWindow
 
     static int _pathMask;
     static int _obstacleMask;
+    static int _exceptMask;
 
-    static float _cellSize = 1f;
-    static float _cellHeight = 1f;
+    static float _cellSize = 0.4f;
+    static float _cellHeight = 0.4f;
+
+    static float _agentHeight = 1.6f;
+    static float _agentRadius = 0.5f;
+    static float _maxClimb = 0.5f;
+    static float _maxSlope = 30f;
 
     static bool _debug_DrawVoxel = false;
-    static bool _debug_DrawGrid = false;
-    static bool _debug_DrawLabel = false;
+    static bool _debug_DrawWalkableVoxel = false;
 
     [MenuItem("TEST/NavMeshScanner")]
     static void Init()
@@ -58,57 +63,7 @@ public class NavMeshScannerWindow : EditorWindow
         Handles.DrawLine(new Vector3(_mapSize.max.x, _mapSize.max.y, _mapSize.min.z), new Vector3(_mapSize.max.x, _mapSize.min.y, _mapSize.min.z));
         #endregion
 
-        var va = Voxel.Instance.VoxelArea;
-
-        #region Draw Label
-        if (va != null && _debug_DrawLabel == true)
-        {
-            Handles.color = Color.white;
-
-            uint xCount = va.WidthCount;
-            uint yCount = va.HeightCount;
-            uint zCount = va.DepthCount;
-            for (int i = 0; i < yCount; ++i)
-            {
-                float y = _mapSize.min.y + (i * _cellHeight);
-                for (int j = 0; j < zCount; ++j)
-                {
-                    for (int k = 0; k < xCount; ++k)
-                    {
-                        uint index;
-                        Vector3 position;
-                        if (!va.GetCellIndex(out index, (uint)k, (uint)i, (uint)j)) continue;
-                        if (!va.GetCellPosition(index, out position)) continue;
-                        Handles.Label(position, string.Format("{0}", index));
-                    }
-                }
-            }
-        }
-        #endregion
-
-        #region Draw Cell Grid
-        if (va != null && _debug_DrawGrid == true)
-        {
-            Handles.color = Color.white;
-
-            uint xCount = va.WidthCount;
-            uint yCount = va.HeightCount;
-            uint zCount = va.DepthCount;
-            //for (int i = 1; i <= yCount; ++i)
-            {
-                //float y = _mapSize.min.y + (i * _cellHeight);
-                float y = _mapSize.min.y;
-                for (int j = 1; j <= zCount; ++j)
-                {
-                    for (int k = 1; k < xCount; ++k)
-                    {
-                        Handles.DrawLine(new Vector3(_mapSize.min.x + (k * _cellSize), y, _mapSize.min.z), new Vector3(_mapSize.min.x + (k * _cellSize), y, _mapSize.max.z));
-                    }
-                    Handles.DrawLine(new Vector3(_mapSize.min.x, y, _mapSize.min.z + (j * _cellSize)), new Vector3(_mapSize.max.x, y, _mapSize.min.z + (j * _cellSize)));
-                }
-            }
-        }
-        #endregion
+        //var va = Voxel.Instance.VoxelArea;
     }
 
     [DrawGizmo(GizmoType.NotInSelectionHierarchy | GizmoType.Selected)]
@@ -118,12 +73,39 @@ public class NavMeshScannerWindow : EditorWindow
         #region Draw Voxel
         if (va != null && _debug_DrawVoxel == true)
         {
-            Gizmos.color = Color.blue;
+            Color c = Color.white;
+            c.a = 0.7f;
+            Gizmos.color = c;
+            foreach (var ele in va.WalkableCells)
+            {
+                VoxelCell vc;
+                int count = 1;
+                for (bool lower = va.GetLowerCell(ele.Index, out vc); lower; lower = va.GetLowerCell(vc.Index, out vc), ++count)
+                    if (!vc.walkable) break;
+
+                Vector3 tmp;
+                if (!va.GetCellPosition(ele.Index, out tmp)) continue;
+                tmp.y = tmp.y - (_cellHeight * count * 0.5f) + _cellHeight*0.5f;
+                //Gizmos.DrawWireCube(tmp, new Vector3(_cellSize, _cellHeight*count, _cellSize));
+                Gizmos.DrawCube(tmp, new Vector3(_cellSize, _cellHeight*count, _cellSize));
+            }
+        }
+        #endregion
+
+        #region Draw Walkable Voxel
+        if (va != null && _debug_DrawWalkableVoxel == true)
+        {
+            Color c = Color.blue;
+            c.a = 0.7f;
+            Gizmos.color = c;
             foreach (var ele in va.WalkableCells)
             {
                 Vector3 tmp;
                 if (!va.GetCellPosition(ele.Index, out tmp)) continue;
-                Gizmos.DrawWireCube(tmp, new Vector3(_cellSize, _cellHeight, _cellSize));
+                if (ele.ConnectionBack && ele.ConnectionFront && ele.ConnectionLeft && ele.ConnectionRight) { Color t = Color.red; t.a = 0.5f; Gizmos.color = t; }
+                else Gizmos.color = c;
+                Gizmos.DrawCube(tmp, new Vector3(_cellSize, _cellHeight, _cellSize));
+                //Gizmos.DrawCube(tmp, new Vector3(_cellSize, 0f, _cellSize));
             }
         }
         #endregion
@@ -137,6 +119,10 @@ public class NavMeshScannerWindow : EditorWindow
         EditorGUILayout.EndVertical();
         _cellSize = EditorGUILayout.Slider("Cell Size", _cellSize, 0.1f, 4f);
         _cellHeight = EditorGUILayout.Slider("Cell Height", _cellHeight, 0.1f, 4f);
+        _agentRadius = EditorGUILayout.Slider("Agent Radius", _agentRadius, 0.1f, 4f);
+        _agentHeight = EditorGUILayout.Slider("Agent Height", _agentHeight, 0.5f, 4f);
+        _maxClimb = EditorGUILayout.Slider("Max Climb", _maxClimb, 0.0f, 4f);
+        _maxSlope = EditorGUILayout.Slider("Max Slope", _maxSlope, 0.1f, 90f);
         
         List<string> layerNames = new List<string>();
         for(int i = 0; i < 32; ++i)
@@ -147,62 +133,32 @@ public class NavMeshScannerWindow : EditorWindow
 
         _pathMask = EditorGUILayout.MaskField("Path",_pathMask, layerNames.ToArray());
         _obstacleMask = EditorGUILayout.MaskField("Obstacles", _obstacleMask, layerNames.ToArray());
+        _exceptMask = EditorGUILayout.MaskField("Excepts", _exceptMask, layerNames.ToArray());
 
         if (GUILayout.Button("Scan the map"))
         {
             List<string> pathLayers = new List<string>();
             List<string> obstacleMask = new List<string>();
+            List<string> exceptMask = new List<string>();
+
             for (int i = 1; i <= layerNames.Count; ++i)
             {
                 if ((_pathMask & (1 << i)) > 0) pathLayers.Add(layerNames[i]);
                 if ((_obstacleMask & (1 << i)) > 0) obstacleMask.Add(layerNames[i]);
+                if ((_exceptMask & (1 << i)) > 0) exceptMask.Add(layerNames[i]);
             }
 
-            Voxel.Instance.InitVoxelArea(_cellSize, _cellHeight, LayerMask.GetMask(pathLayers.ToArray()), LayerMask.GetMask(obstacleMask.ToArray()));
+            Voxel.Instance.InitVoxelArea(_cellSize, _cellHeight
+                , LayerMask.GetMask(pathLayers.ToArray()), LayerMask.GetMask(obstacleMask.ToArray()), LayerMask.GetMask(exceptMask.ToArray()));
             _mapSize = Voxel.Instance.VoxelArea.AreaBound;
+            Voxel.Instance.VoxelArea.SetAgentInfo(_agentHeight, _agentRadius, _maxClimb, _maxSlope);
             Voxel.Instance.ScanVoxelSpace();
         }
 
-        if(GUILayout.Button("ddkfk"))
-        {
-            CreateDebugVoxel();
-        }
-
-        _debug_DrawGrid = EditorGUILayout.Toggle("Show Grid", _debug_DrawGrid);
         _debug_DrawVoxel = EditorGUILayout.Toggle("Show Voxel", _debug_DrawVoxel);
-        _debug_DrawLabel = EditorGUILayout.Toggle("Show Label", _debug_DrawLabel);
+        _debug_DrawWalkableVoxel = EditorGUILayout.Toggle("Show Walkable Voxel", _debug_DrawWalkableVoxel);
         EditorGUILayout.EndVertical();
 
         SceneView.RepaintAll();
-    }
-
-    private void CreateDebugVoxel()
-    {
-        GameObject root = GameObject.Find("Debug Voxels");
-        if (root != null) GameObject.DestroyImmediate(root);
-        root = new GameObject("Debug Voxels");
-        //root.hideFlags = HideFlags.HideAndDontSave;
-
-        uint xCount = (uint)System.Math.Truncate((_mapSize.max.x - _mapSize.min.x) / _cellSize);
-        uint yCount = (uint)System.Math.Truncate((_mapSize.max.y - _mapSize.min.y) / _cellHeight);
-        uint zCount = (uint)System.Math.Truncate((_mapSize.max.z - _mapSize.min.z) / _cellSize);
-        for (int i = 1; i <= zCount; ++i)
-        {
-            for (int j = 1; j <= xCount; ++j)
-            {
-                GameObject newMesh = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                DestroyImmediate(newMesh.GetComponent<BoxCollider>());
-                MeshRenderer mr = newMesh.GetComponent<MeshRenderer>();
-                //mr.material.color = Color.red;
-                mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-                mr.receiveShadows = false;
-                mr.useLightProbes = false;
-                mr.reflectionProbeUsage = UnityEngine.Rendering.ReflectionProbeUsage.Off;
-
-                newMesh.transform.parent = root.transform;
-                newMesh.transform.position = new Vector3(_mapSize.min.x + (j * _cellSize) - (_cellSize * 0.5f), 0f, _mapSize.min.z + (i * _cellSize) - (_cellSize * 0.5f));
-                newMesh.transform.localScale = new Vector3(_cellSize, _cellHeight, _cellSize);
-            }
-        }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
+using ZKit.Math.Geometry;
 
 namespace ZKit.PathFinder
 {
@@ -59,8 +59,11 @@ namespace ZKit.PathFinder
         private uint _widthCount;
         private uint _depthCount;
         private uint _heightCount;
+        private float _agentRadius;
+        private float _agentHeight;
+        private float _maxSlope;
+        private float _maxClimb;
 
-        //private VoxelSpan[] _voxelSpans;
         private VoxelCell[] _voxelCells;
         private SortedList<uint, VoxelCell> _walkableCells = new SortedList<uint, VoxelCell>();
 
@@ -70,6 +73,10 @@ namespace ZKit.PathFinder
         public uint WidthCount { get { return _widthCount; } }
         public uint HeightCount { get { return _heightCount; } }
         public uint DepthCount { get { return _depthCount; } }
+        public float AgentHeight { get { return _agentHeight; } }
+        public float AgentRadius { get { return _agentRadius; } }
+        public float MaxSlope { get { return _maxSlope; } }
+        public float MaxClimb { get { return _maxClimb; } }
 
         public IList<VoxelCell> WalkableCells { get { return _walkableCells.Values; } }
 
@@ -91,6 +98,68 @@ namespace ZKit.PathFinder
 
             for (uint i = 0; i < _voxelCells.Length; ++i)
                 _voxelCells[i] = new VoxelCell(i);
+        }
+
+        public void SetAgentInfo(float agentHeight, float agentRadius, float maxClimb, float maxSlope)
+        {
+            _agentHeight = agentHeight;
+            _agentRadius = agentRadius;
+            _maxClimb = maxClimb;
+            _maxSlope = maxSlope;
+        }
+
+        public VoxelCell GetTopCell(uint index, uint max = 4)
+        {
+            uint x, y, z;
+            if (!GetCellCount(index, out x, out y, out z)) return null;
+            VoxelCell tmp;
+            for(uint i = 1; i < max; ++i)
+            {
+                if ((tmp = GetCell(x, y+i, z)) == null) return null;
+                if (tmp.top) return tmp;
+            }
+            return null;
+        }
+
+        public VoxelCell GetLowerCell(uint index, uint max = 4)
+        {
+            uint x, y, z;
+            if (!GetCellCount(index, out x, out y, out z)) return null;
+            VoxelCell tmp;
+            for(uint i = 1; i < max; ++i)
+            {
+                if ((tmp = GetCell(x, y-i, z)) == null) return null;
+                if (tmp.top) return tmp;
+            }
+            return null;
+        }
+
+        public VoxelCell GetLeftCell(uint index)
+        {
+            uint x, y, z;
+            if (!GetCellCount(index, out x, out y, out z)) return null;
+            return GetCell(++x, y, z);
+        }
+
+        public VoxelCell GetRightCell(uint index)
+        {
+            uint x, y, z;
+            if (!GetCellCount(index, out x, out y, out z)) return null;
+            return GetCell(--x, y, z);
+        }
+
+        public VoxelCell GetFrontCell(uint index)
+        {
+            uint x, y, z;
+            if (!GetCellCount(index, out x, out y, out z)) return null;
+            return GetCell(x, y, ++z);
+        }
+
+        public VoxelCell GetBackCell(uint index)
+        {
+            uint x, y, z;
+            if (!GetCellCount(index, out x, out y, out z)) return null;
+            return GetCell(x, y, --z);
         }
 
         /// <summary>
@@ -149,15 +218,15 @@ namespace ZKit.PathFinder
         /// <param name="y">out Vertical count</param>
         /// <param name="z">out Depth count</param>
         /// <returns>Success or Fail</returns>
-        public bool GetCellCount(uint index, out int x, out int y, out int z)
+        public bool GetCellCount(uint index, out uint x, out uint y, out uint z)
         {
-            x = y = z = 0;
+            x = y = z = 0u;
             if (index >= _voxelCells.Length) return false;
 
-            z = (int)(index / (_widthCount * _heightCount));
-            int tmp = (int)(z * _widthCount * _heightCount);
-            y = (int)((index - tmp) / _widthCount);
-            x = (int)((index - tmp) % _widthCount);
+            z = index / (_widthCount * _heightCount);
+            uint tmp = z * _widthCount * _heightCount;
+            y = (index - tmp) / _widthCount;
+            x = (index - tmp) % _widthCount;
             return true;
         }
         /// <summary>
@@ -188,27 +257,80 @@ namespace ZKit.PathFinder
         /// <returns></returns>
         public bool GetCellPosition(uint index, out Vector3 position)
         {
-            int x, y, z;
+            uint x, y, z;
             position = Vector3.zero;
             if (!GetCellCount(index, out x, out y, out z)) return false;
             position.x = x * _cellSize + _cellSize * 0.5f;
             position.y = y * _cellHeight + _cellHeight * 0.5f;
             position.z = z * _cellSize + _cellSize * 0.5f;
             position = position + _bound.min;
+            position.x = Mathf.Round(position.x * 1000f) * 0.001f;
+            position.y = Mathf.Round(position.y * 1000f) * 0.001f;
+            position.z = Mathf.Round(position.z * 1000f) * 0.001f;
+            return true;
+        }
+
+        public bool GetUpperCell(uint index, out VoxelCell cell)
+        {
+            cell = null;
+            uint x, y, z;
+            if (!GetCellCount(index, out x, out y, out z)) return false;
+            if ((cell = GetCell(x, y+1, z)) == null) return false;
+            return true;
+        }
+
+        public bool GetLowerCell(uint index, out VoxelCell cell)
+        {
+            cell = null;
+            uint x, y, z;
+            if (!GetCellCount(index, out x, out y, out z)) return false;
+            if ((cell = GetCell(x, y - 1, z)) == null) return false;
             return true;
         }
 
         public void SetWalkableCell(Vector3 point)
         {
-            var cell = GetCell(point);
-            cell.walkable = true;
-            _walkableCells.Add(cell.Index, cell);
+            SetWalkableCell(GetCell(point));
+        }
+
+        public void RemoveWalkableCell(uint index)
+        {
+            //GetTopCell(index);
+            _walkableCells[index].walkable = false;
+            _walkableCells.Remove(index);
         }
 
         public void SetWalkableCell(VoxelCell cell)
         {
             cell.walkable = true;
-            _walkableCells.Add(cell.Index, cell);
+            cell.top = true;
+            cell.bottom = true;
+
+            VoxelCell upperCell;
+            VoxelCell lowerCell;
+
+            for( bool upper = GetUpperCell(cell.Index, out upperCell); upper; upper = GetUpperCell(upperCell.Index, out upperCell) )
+            {
+                if (!upperCell.walkable) break;
+                cell.top = false;
+                if (upperCell.bottom) upperCell.bottom = false;
+                if (upperCell.top)
+                    break;
+            }
+            if(cell.top) _walkableCells.Add(cell.Index, cell); // top만 등록.
+
+            for (bool lower = GetLowerCell(cell.Index, out lowerCell); lower; lower = GetLowerCell(lowerCell.Index, out lowerCell))
+            {
+                if (!lowerCell.walkable) break;
+                cell.bottom = false;
+
+                if (lowerCell.top)
+                {
+                    _walkableCells.Remove(lowerCell.Index);
+                    lowerCell.top = false;
+                }
+                if (lowerCell.bottom) break;
+            }
         }
     }
 
@@ -217,18 +339,22 @@ namespace ZKit.PathFinder
         private VoxelArea _area;
 
         private List<SimpleMesh> _inObjects = new List<SimpleMesh>();
+        private List<SimpleMesh> _exceptObjects = new List<SimpleMesh>();
 
         private int _pathLayerMask = 0;
         private int _obstacleLayerMask = 0;
+        private int _exceptLayerMask = 0;
 
         public VoxelArea VoxelArea { get { return _area; } }
 
-        public void InitVoxelArea(float cellSize, float cellHeight, int pathLayerMask, int obstacleLayerMask)
+        public void InitVoxelArea(float cellSize, float cellHeight, int pathLayerMask, int obstacleLayerMask, int exceptLayerMask)
         {
             _pathLayerMask = pathLayerMask;
             _obstacleLayerMask = obstacleLayerMask;
-            _area = new VoxelArea(UUtil.ScanMapSize3D(_pathLayerMask, _obstacleLayerMask, 0f), cellSize, cellHeight);
+            _exceptLayerMask = exceptLayerMask;
+            _area = new VoxelArea(UUtil.ScanMapSize3D(_pathLayerMask, _obstacleLayerMask, cellSize), cellSize, cellHeight);
             _inObjects.Clear();
+            _exceptObjects.Clear();
         }
 
         public void ScanVoxelSpace()
@@ -243,7 +369,7 @@ namespace ZKit.PathFinder
             {
                 var renderer = filter.GetComponent<MeshRenderer>();
                 if (filter.sharedMesh == null || !renderer.enabled) continue;
-                if (((_pathLayerMask | _obstacleLayerMask) & (1 << filter.gameObject.layer)) == 0) continue;
+                if (((_pathLayerMask | _obstacleLayerMask | _exceptLayerMask) & (1 << filter.gameObject.layer)) == 0) continue;
 
                 if (_area.AreaBound.Intersects(renderer.bounds))
                 {
@@ -269,29 +395,186 @@ namespace ZKit.PathFinder
 
                     smesh._bounds = renderer.bounds;
 
-                    _inObjects.Add(smesh);
+                    if ((_exceptLayerMask & (1 << filter.gameObject.layer)) != 0)
+                        _exceptObjects.Add(smesh);
+                    else
+                        _inObjects.Add(smesh);
                 }
             }
         }
         private void Voxelize()
         {
+            foreach(var obj in _exceptObjects)
+            {
+                RegistExceptVoxel(obj);
+            }
             foreach (var obj in _inObjects)
             {
                 VoxelizeObject(obj);
             }
+
+            FilterLedge();
+
+            BuildConnection();
+            //BuildDistanceField();
         }
 
-        private void VoxelizeObject(SimpleMesh mesh)
+        private void FilterLedge()
+        {
+            BuildConnection();
+            var va = VoxelArea;
+            List<uint> deletingReservations = new List<uint>();
+            foreach (var ele in va.WalkableCells)
+            {
+                if (!ele.ConnectionBack || !ele.ConnectionFront || !ele.ConnectionLeft || !ele.ConnectionRight)
+                    deletingReservations.Add(ele.Index);
+            }
+            foreach (var ele in deletingReservations)
+                va.RemoveWalkableCell(ele);
+        }
+
+        private void BuildConnection()
+        {
+            var va = VoxelArea;
+            var wc = VoxelArea.WalkableCells;
+            uint climbableCellCount = (uint)Mathf.CeilToInt(va.MaxClimb / va.CellHeight);
+            foreach (var ele in wc)
+            {
+                Vector3 curPos;
+                va.GetCellPosition(ele.Index, out curPos);
+
+                VoxelCell tmp;
+                if ((tmp = va.GetLeftCell(ele.Index)) != null)
+                {
+                    if (tmp.walkable)
+                    {
+                        if (tmp.top)
+                            ele.ConnectionLeft = true;
+                        else
+                        {
+                            if (va.GetTopCell(tmp.Index, climbableCellCount) == null)
+                                ele.ConnectionLeft = false;
+                            else
+                                ele.ConnectionLeft = true;
+                        }
+                    }
+                    else
+                    {
+                        var heigherCell = va.GetTopCell(tmp.Index, climbableCellCount);
+                        var lowerCell = va.GetLowerCell(tmp.Index, climbableCellCount);
+
+                        if (heigherCell != null || lowerCell != null)
+                            ele.ConnectionLeft = true;
+                        else
+                            ele.ConnectionLeft = false;
+                    }
+                }
+                else ele.ConnectionLeft = false;
+                if( (tmp = va.GetRightCell(ele.Index)) != null)
+                {
+                    if (tmp.walkable)
+                    {
+                        if (tmp.top)
+                            ele.ConnectionRight = true;
+                        else
+                        {
+                            if (va.GetTopCell(tmp.Index, climbableCellCount) == null)
+                                ele.ConnectionRight = false;
+                            else
+                                ele.ConnectionRight = true;
+                        }
+                    }
+                    else
+                    {
+                        var heigherCell = va.GetTopCell(tmp.Index, climbableCellCount);
+                        var lowerCell = va.GetLowerCell(tmp.Index, climbableCellCount);
+
+                        if (heigherCell != null || lowerCell != null)
+                            ele.ConnectionRight = true;
+                        else
+                            ele.ConnectionRight = false;
+                    }
+                }
+                else ele.ConnectionRight = false;
+                if ( (tmp = va.GetFrontCell(ele.Index)) != null)
+                {
+                    if (tmp.walkable)
+                    {
+                        if (tmp.top)
+                            ele.ConnectionFront = true;
+                        else
+                        {
+                            if (va.GetTopCell(tmp.Index, climbableCellCount) == null)
+                                ele.ConnectionFront = false;
+                            else
+                                ele.ConnectionFront = true;
+                        }
+                    }
+                    else
+                    {
+                        var heigherCell = va.GetTopCell(tmp.Index, climbableCellCount);
+                        var lowerCell = va.GetLowerCell(tmp.Index, climbableCellCount);
+
+                        if (heigherCell != null || lowerCell != null)
+                            ele.ConnectionFront = true;
+                        else
+                            ele.ConnectionFront = false;
+                    }
+                }
+                else ele.ConnectionFront = false;
+                if ( (tmp = va.GetBackCell(ele.Index)) != null)
+                {
+                    if (tmp.walkable)
+                    {
+                        if (tmp.top)
+                            ele.ConnectionBack = true;
+                        else
+                        {
+                            if (va.GetTopCell(tmp.Index, climbableCellCount) == null)
+                                ele.ConnectionBack = false;
+                            else
+                                ele.ConnectionBack = true;
+                        }
+                    }
+                    else
+                    {
+                        var heigherCell = va.GetTopCell(tmp.Index, climbableCellCount);
+                        var lowerCell = va.GetLowerCell(tmp.Index, climbableCellCount);
+
+                        if (heigherCell != null || lowerCell != null)
+                            ele.ConnectionBack = true;
+                        else
+                            ele.ConnectionBack = false;
+                    }
+                }
+                else ele.ConnectionBack = false;
+            }
+        }
+
+        private void BuildDistanceField()
+        {
+            var va = VoxelArea;
+            var wc = VoxelArea.WalkableCells;
+            foreach(var ele in wc)
+            {
+                
+            }
+        }
+
+        private void RegistExceptVoxel(SimpleMesh mesh)
         {
             VoxelArea va = VoxelArea;
 
-            for(int i = 0; i < mesh._triangles.Length; i+=3)
+            for (int i = 0; i < mesh._triangles.Length; i += 3)
             {
                 int min_x, min_y, min_z, max_x, max_y, max_z;
-                Vector3 minPos = Vector3.Min(Vector3.Min(mesh._vertices[mesh._triangles[i]], mesh._vertices[mesh._triangles[i + 1]]), mesh._vertices[mesh._triangles[i + 2]]);
-                Vector3 maxPos = Vector3.Max(Vector3.Max(mesh._vertices[mesh._triangles[i]], mesh._vertices[mesh._triangles[i + 1]]), mesh._vertices[mesh._triangles[i + 2]]);
-                minPos = mesh._matrix.MultiplyPoint3x4(minPos);
-                maxPos = mesh._matrix.MultiplyPoint3x4(maxPos);
+
+                Vector3 tri1 = mesh._matrix.MultiplyPoint3x4(mesh._vertices[mesh._triangles[i]]);
+                Vector3 tri2 = mesh._matrix.MultiplyPoint3x4(mesh._vertices[mesh._triangles[i + 1]]);
+                Vector3 tri3 = mesh._matrix.MultiplyPoint3x4(mesh._vertices[mesh._triangles[i + 2]]);
+
+                Vector3 minPos = Vector3.Min(Vector3.Min(tri1, tri2), tri3);
+                Vector3 maxPos = Vector3.Max(Vector3.Max(tri1, tri2), tri3);
 
                 if (!va.GetCellCount(minPos, out min_x, out min_y, out min_z))
                 {
@@ -312,7 +595,62 @@ namespace ZKit.PathFinder
                         {
                             var cell = va.GetCell(x, y, z);
                             if (cell == null || cell.walkable) continue;
-                            va.SetWalkableCell(cell);
+
+                            Vector3 position, size;
+                            va.GetCellPosition(cell.Index, out position);
+                            size = new Vector3(va.CellSize, va.CellHeight, va.CellSize);
+                            AABox box = new AABox(position, size);
+                            Triangle triangle = new Triangle(tri1, tri2, tri3);
+                            if (Collision3D.CollisionDetectTriangle(triangle, box))
+                                cell.excepted = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        private void VoxelizeObject(SimpleMesh mesh)
+        {
+            VoxelArea va = VoxelArea;
+
+            for (int i = 0; i < mesh._triangles.Length; i+=3)
+            {
+                int min_x, min_y, min_z, max_x, max_y, max_z;
+
+                Vector3 tri1 = mesh._matrix.MultiplyPoint3x4(mesh._vertices[mesh._triangles[i]]);
+                Vector3 tri2 = mesh._matrix.MultiplyPoint3x4(mesh._vertices[mesh._triangles[i+1]]);
+                Vector3 tri3 = mesh._matrix.MultiplyPoint3x4(mesh._vertices[mesh._triangles[i+2]]);
+
+                Vector3 minPos = Vector3.Min(Vector3.Min(tri1, tri2), tri3);
+                Vector3 maxPos = Vector3.Max(Vector3.Max(tri1, tri2), tri3);
+
+                if (!va.GetCellCount(minPos, out min_x, out min_y, out min_z))
+                {
+                    Debug.Log("bound min err");
+                    return;
+                }
+                if (!va.GetCellCount(maxPos, out max_x, out max_y, out max_z))
+                {
+                    Debug.Log("bound max err");
+                    return;
+                }
+
+                for (uint z = (uint)min_z; z <= max_z; ++z)
+                {
+                    for (uint y = (uint)min_y; y <= max_y; ++y)
+                    {
+                        for (uint x = (uint)min_x; x <= max_x; ++x)
+                        {
+                            var cell = va.GetCell(x, y, z);
+                            if (cell == null || cell.walkable || cell.excepted) continue;
+
+                            Vector3 position, size;
+                            va.GetCellPosition(cell.Index, out position);
+                            size = new Vector3(va.CellSize, va.CellHeight, va.CellSize);
+                            AABox box = new AABox(position, size);
+                            Triangle triangle = new Triangle(tri1, tri2, tri3);
+                            if(Collision3D.CollisionDetectTriangle(triangle, box, Vector3.up))
+                                va.SetWalkableCell(cell);
                         }
                     }
                 }
@@ -320,21 +658,46 @@ namespace ZKit.PathFinder
         }
     }
 
-    public class VoxelSpan
+    public enum CELL_TYPE
     {
-        private uint y;
-        private uint h;
-
-        public VoxelSpan next;
-
+        None = 0,
+        ledge,
+        Walkable,
     }
 
     public class VoxelCell
     {
         private uint _index;
         public bool walkable = false;
+        public bool excepted = false;
 
-        private VoxelSpan span;
+        public bool top = false;
+        public bool bottom = false;
+
+        private int connectinon = 0;
+
+        public bool ConnectionLeft
+        {
+            get { return (connectinon & 1) > 0 ? true : false; }
+            set { connectinon = value ? connectinon | 1 : connectinon & ~1; }
+        }
+        public bool ConnectionRight
+        {
+            get { return (connectinon & 2) > 0 ? true : false; }
+            set { connectinon = value ? connectinon | 2 : connectinon & ~2; }
+        }
+        public bool ConnectionFront
+        {
+            get { return (connectinon & 4) > 0 ? true : false; }
+            set { connectinon = value ? connectinon | 4 : connectinon & ~4; }
+        }
+        public bool ConnectionBack
+        {
+            get { return (connectinon & 8) > 0 ? true : false; }
+            set { connectinon = value ? connectinon | 8 : connectinon & ~8; }
+        }
+
+        public ushort depth = 0;
 
         public uint Index { get { return _index; } }
 

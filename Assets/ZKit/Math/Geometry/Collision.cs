@@ -522,101 +522,88 @@ namespace ZKit.Math.Geometry
     public static class Collision3D
     {
         /// <summary>
-        /// 폴리곤과 박스의 충돌을 검사한다.
+        /// 폴리곤과 박스의 충돌을 검사한다. 버그가 있는듯.. 나중에 수정.
         /// </summary>
         /// <returns>충돌을 했다. 안했다.</returns>
-        public static bool CollisionDetectTriangle(Vector3 v)
-        {
 
-            return false;
+        private static float epsilon = 0.0000f;
+
+        /// <summary>
+        /// 폴리곤과 박스의 충돌을 검사한다. 버그가 있는듯.. 나중에 수정.
+        /// </summary>
+        /// <param name="triangle">Triangle</param>
+        /// <param name="box">AABox</param>
+        /// <param name="refNormal">기준 노말. 폴리곤의 노말이 기준 노말과 반대되면 제외. 기본값(Vector3.zero)은 옵션무시</param>
+        /// <returns></returns>
+        public static bool CollisionDetectTriangle(Triangle triangle, AABox box, Vector3 refNormal = new Vector3())
+        {
+            float triangleMin, triangleMax;
+            float boxMin, boxMax;
+
+            if (refNormal != Vector3.zero)
+            {
+                if (Vector3.Dot(refNormal, triangle.Normal) < 0f) return false;
+            }
+
+            var boxNormals = new Vector3[] { Vector3.right, Vector3.up, Vector3.forward };
+
+            for (int i = 0; i < 3; ++i) // 기본 삼축 검사를 하여 
+            {
+                triangleMin = float.PositiveInfinity;
+                triangleMax = float.NegativeInfinity;
+                foreach (var vertice in triangle.Vertices)
+                {
+                    triangleMax = (Mathf.Max(triangleMax, vertice[i]));
+                    triangleMin = Mathf.Min(triangleMin, vertice[i]);
+                }
+                if( triangleMax + epsilon < box.Position[i] - (box.Size*0.5f)[i] - epsilon || triangleMin - epsilon > box.Position[i] + (box.Size * 0.5f)[i] + epsilon)
+                    return false; // No intersection possible.
+            }
+
+            double triangleOffset = Vector3.Dot(triangle.Normal, triangle[0]);
+            Project(box.Vertices, triangle.Normal, out boxMin, out boxMax);
+            if (boxMax - epsilon < triangleOffset + epsilon || boxMin + epsilon > triangleOffset - epsilon)
+                return false; // No intersection possible.
+
+            // Test the nine edge cross-products
+            Vector3[] triangleEdges = new Vector3[] {
+                triangle[0] - triangle[1],
+                triangle[1] - triangle[2],
+                triangle[2] - triangle[0]
+            };
+            for (int i = 0; i < 3; i++)
+                for (int j = 0; j < 3; j++)
+                {
+                    // The box normals are the same as it's edge tangents
+                    Vector3 axis = Vector3.Cross(triangleEdges[i], boxNormals[j]);
+                    if (axis.x == 0 && axis.y == 0f && axis.z == 0f) continue;
+                    Project(box.Vertices, axis, out boxMin, out boxMax);
+                    Project(triangle.Vertices, axis, out triangleMin, out triangleMax);
+                    if (boxMax < triangleMin || boxMin > triangleMax)
+                        return false; // No intersection possible
+                }
+            // No separating axis found.
+            return true;
         }
 
-        //bool IsIntersecting(IAABox box, ITriangle triangle)
-        //{
-        //    double triangleMin, triangleMax;
-        //    double boxMin, boxMax;
+        /// <summary>
+        /// 점들을 지정된 축에 투영하여 최소 거리와 최대 거리를 구한다.
+        /// </summary>
+        /// <param name="points">투영할 점들</param>
+        /// <param name="axis">기준 축</param>
+        /// <param name="min">out 최소 거리</param>
+        /// <param name="max">out 최대 거리</param>
+        public static void Project(IEnumerable<Vector3> points, Vector3 axis, out float min, out float max)
+        {
+            min = float.PositiveInfinity;
+            max = float.NegativeInfinity;
 
-        //    // Test the box normals (x-, y- and z-axes)
-        //    var boxNormals = new IVector[] {
-        //        new Vector(1,0,0),
-        //        new Vector(0,1,0),
-        //        new Vector(0,0,1)
-        //    };
-        //    for (int i = 0; i < 3; i++)
-        //    {
-        //        IVector n = boxNormals[i];
-        //        Project(triangle.Vertices, boxNormals[i], out triangleMin, out triangleMax);
-        //        if (triangleMax < box.Start.Coords[i] || triangleMin > box.End.Coords[i])
-        //            return false; // No intersection possible.
-        //    }
-
-        //    // Test the triangle normal
-        //    double triangleOffset = triangle.Normal.Dot(triangle.A);
-        //    Project(box.Vertices, triangle.Normal, out boxMin, out boxMax);
-        //    if (boxMax < triangleOffset || boxMin > triangleOffset)
-        //        return false; // No intersection possible.
-
-        //    // Test the nine edge cross-products
-        //    IVector[] triangleEdges = new IVector[] {
-        //        triangle.A.Minus(triangle.B),
-        //        triangle.B.Minus(triangle.C),
-        //        triangle.C.Minus(triangle.A)
-        //    };
-        //    for (int i = 0; i < 3; i++)
-        //        for (int j = 0; j < 3; j++)
-        //        {
-        //            // The box normals are the same as it's edge tangents
-        //            IVector axis = triangleEdges[i].Cross(boxNormals[j]);
-        //            Project(box.Vertices, axis, out boxMin, out boxMax);
-        //            Project(triangle.Vertices, axis, out triangleMin, out triangleMax);
-        //            if (boxMax <= triangleMin || boxMin >= triangleMax)
-        //                return false; // No intersection possible
-        //        }
-
-        //    // No separating axis found.
-        //    return true;
-        //}
-
-        //void Project(IEnumerable<IVector> points, IVector axis, out double min, out double max)
-        //{
-        //    double min = double.PositiveInfinity;
-        //    double max = double.NegativeInfinity;
-        //    foreach (var p in points)
-        //    {
-        //        double val = axis.Dot(p);
-        //        if (val < min) min = val;
-        //        if (val > max) max = val;
-        //    }
-        //}
-
-        //interface IVector
-        //{
-        //    double X { get; }
-        //    double Y { get; }
-        //    double Z { get; }
-        //    double[] Coords { get; }
-        //    double Dot(IVector other);
-        //    IVector Minus(IVector other);
-        //    IVector Cross(IVector other);
-        //}
-
-        //interface IShape
-        //{
-        //    IEnumerable<IVector> Vertices { get; }
-        //}
-
-        //interface IAABox : IShape
-        //{
-        //    IVector Start { get; }
-        //    IVector End { get; }
-        //}
-
-        //interface ITriangle : IShape
-        //{
-        //    IVector Normal { get; }
-        //    IVector A { get; }
-        //    IVector B { get; }
-        //    IVector C { get; }
-        //}
+            foreach (var p in points)
+            {
+                float val = Vector3.Dot(axis, p);
+                if (val < min) min = val;
+                if (val > max) max = val;
+            }
+        }
     }
 }

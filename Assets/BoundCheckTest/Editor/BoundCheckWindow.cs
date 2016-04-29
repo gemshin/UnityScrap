@@ -7,7 +7,8 @@ public class BoundCheckWindow : EditorWindow
 {
     private enum BoundType
     {
-        Box,
+        Box2D,
+        AABox3D,
         Cube,
         Capsule,
         Circle,
@@ -20,6 +21,8 @@ public class BoundCheckWindow : EditorWindow
         Ray2D,
         Box2D,
         LerpBox2D,
+        AABox3D,
+        Triangle,
         Circle2D,
         Sector2D,
         None
@@ -49,7 +52,10 @@ public class BoundCheckWindow : EditorWindow
 
     #region testBox
     private static Box2D _testBox = new Box2D();
+    private static AABox _testAABox = new AABox();
     #endregion
+
+    private static Triangle _testTriangle = new Triangle(Vector3.zero, Vector3.forward, Vector3.right);
 
     #region testCircle
     private static Circle _testCircle = new Circle();
@@ -59,6 +65,7 @@ public class BoundCheckWindow : EditorWindow
 
     #region box
     private static Box2D _box = new Box2D();
+    private static AABox _aaBox = new AABox();
     #endregion
 
     #region cube
@@ -181,8 +188,11 @@ public class BoundCheckWindow : EditorWindow
 
         switch (_boundType)
         {
-            case BoundType.Box:
+            case BoundType.Box2D:
                 _box.DrawGizmo();
+                break;
+            case BoundType.AABox3D:
+                _aaBox.DrawGizmo();
                 break;
             case BoundType.Cube:
                 _cube.DrawGizmo();
@@ -213,6 +223,12 @@ public class BoundCheckWindow : EditorWindow
             case TestMode.LerpBox2D:
                 Gizmos.DrawLine(_prevClickedPos, _currentClickedPos);
                 _testBox.DrawGizmo();
+                break;
+            case TestMode.AABox3D:
+                _testAABox.DrawGizmo();
+                break;
+            case TestMode.Triangle:
+                _testTriangle.DrawGizmo();
                 break;
             case TestMode.Sector2D:
                 _testSector.DrawGizmo();
@@ -250,10 +266,14 @@ public class BoundCheckWindow : EditorWindow
 
         switch (_boundType)
         {
-            case BoundType.Box:
+            case BoundType.Box2D:
                 _box.position = EditorGUILayout.Vector3Field("position", _box.position);
                 _box.size = EditorGUILayout.Vector2Field("Scale", _box.size);
                 _box.rotate_y = EditorGUILayout.Slider("rotate Y angle", _box.rotate_y, 0f, 360f);
+                break;
+            case BoundType.AABox3D:
+                _aaBox.Position = EditorGUILayout.Vector3Field("position", _aaBox.Position);
+                _aaBox.Size = EditorGUILayout.Vector3Field("Scale", _aaBox.Size);
                 break;
             case BoundType.Cube:
                 _cube.position = EditorGUILayout.Vector3Field("position", _cube.position);
@@ -322,6 +342,19 @@ public class BoundCheckWindow : EditorWindow
             _testBox.size = EditorGUILayout.Vector2Field("Box Size", _testBox.size);
             _testBox.rotate_y = EditorGUILayout.Slider("Box Rotate Y angle", _testBox.rotate_y, 0f, 360f);
         }
+        else if(_testMode == TestMode.AABox3D)
+        {
+            EditorGUILayout.BeginHorizontal();
+            _currentClickedPos = EditorGUILayout.Vector3Field("Box Pos", _currentClickedPos);
+            GUIStyle gs = new GUIStyle("button");
+            if (_clickMode_cur) gs.normal.textColor = Color.green;
+            else gs.normal.textColor = Color.red;
+            if (GUILayout.Button("Edit", gs, GUILayout.Height(32f)))
+                _clickMode_cur = !_clickMode_cur;
+            EditorGUILayout.EndHorizontal();
+            _testAABox.Position = _currentClickedPos;
+            _testAABox.Size = EditorGUILayout.Vector3Field("Box Size", _testAABox.Size);
+        }
         else if (_testMode == TestMode.LerpBox2D)
         {
             EditorGUILayout.BeginHorizontal();
@@ -360,6 +393,9 @@ public class BoundCheckWindow : EditorWindow
             _testBox.rotate_y = Mathf.Acos(Vector3.Dot(direction, Vector3.forward)) * Mathf.Rad2Deg * (direction.x > 0f ? 1 : -1);
             EditorGUILayout.LabelField("angle", _testBox.rotate_y.ToString());
         }
+        else if(_testMode == TestMode.Triangle)
+        {
+        }
         else if (_testMode == TestMode.Sector2D)
         {
             EditorGUILayout.BeginHorizontal();
@@ -393,7 +429,7 @@ public class BoundCheckWindow : EditorWindow
         bool isIn = false;
         switch (_boundType)
         {
-            case BoundType.Box:
+            case BoundType.Box2D:
                 switch (_testMode)
                 {
                     case TestMode.Dot2D:
