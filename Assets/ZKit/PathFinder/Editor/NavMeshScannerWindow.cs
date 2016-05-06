@@ -23,6 +23,7 @@ public class NavMeshScannerWindow : EditorWindow
     static float _maxSlope = 30f;
 
     static bool _debug_DrawVoxel = false;
+    static bool _debug_DrawLedge = false;
     static bool _debug_DrawWalkableVoxel = false;
 
     [MenuItem("TEST/NavMeshScanner")]
@@ -63,31 +64,83 @@ public class NavMeshScannerWindow : EditorWindow
         Handles.DrawLine(new Vector3(_mapSize.max.x, _mapSize.max.y, _mapSize.min.z), new Vector3(_mapSize.max.x, _mapSize.min.y, _mapSize.min.z));
         #endregion
 
-        //var va = Voxel.Instance.VoxelArea;
+//        var va = Voxelizer.Instance.VoxelArea;
     }
 
     [DrawGizmo(GizmoType.NotInSelectionHierarchy | GizmoType.Selected)]
     static void DrawGizmo(GizmoDummy dummy, GizmoType gizmoType)
     {
-        var va = Voxel.Instance.VoxelArea;
+        var va = Voxelizer.Instance.VoxelArea;
         #region Draw Voxel
         if (va != null && _debug_DrawVoxel == true)
         {
             Color c = Color.white;
             c.a = 0.7f;
             Gizmos.color = c;
-            foreach (var ele in va.WalkableCells)
+            foreach (var ele in va.FirstLedges)
             {
-                VoxelCell vc;
+                Voxel vc;
                 int count = 1;
-                for (bool lower = va.GetLowerCell(ele.Index, out vc); lower; lower = va.GetLowerCell(vc.Index, out vc), ++count)
-                    if (!vc.walkable) break;
+                for (vc = va.GetCell(VoxelArea.DIRECTION.Lower, ele.Index); vc != null; vc = va.GetCell(VoxelArea.DIRECTION.Lower, vc.Index), ++count)
+                    if (vc.CellType != VOXEL_NAVI_TYPE.Walkable) break;
 
                 Vector3 tmp;
                 if (!va.GetCellPosition(ele.Index, out tmp)) continue;
-                tmp.y = tmp.y - (_cellHeight * count * 0.5f) + _cellHeight*0.5f;
+                tmp.y = tmp.y - (_cellHeight * count * 0.5f) + _cellHeight * 0.5f;
                 //Gizmos.DrawWireCube(tmp, new Vector3(_cellSize, _cellHeight*count, _cellSize));
-                Gizmos.DrawCube(tmp, new Vector3(_cellSize, _cellHeight*count, _cellSize));
+                Gizmos.DrawCube(tmp, new Vector3(_cellSize, _cellHeight * count, _cellSize));
+            }
+            foreach (var ele in va.Ledges)
+            {
+                Voxel vc;
+                int count = 1;
+                for (vc = va.GetCell(VoxelArea.DIRECTION.Lower, ele.Index); vc != null; vc = va.GetCell(VoxelArea.DIRECTION.Lower, vc.Index), ++count)
+                    if (vc.CellType != VOXEL_NAVI_TYPE.Walkable) break;
+
+                Vector3 tmp;
+                if (!va.GetCellPosition(ele.Index, out tmp)) continue;
+                tmp.y = tmp.y - (_cellHeight * count * 0.5f) + _cellHeight * 0.5f;
+                //Gizmos.DrawWireCube(tmp, new Vector3(_cellSize, _cellHeight*count, _cellSize));
+                Gizmos.DrawCube(tmp, new Vector3(_cellSize, _cellHeight * count, _cellSize));
+            }
+            foreach (var ele in va.WalkableCells)
+            {
+                Voxel vc;
+                int count = 1;
+                for (vc = va.GetCell(VoxelArea.DIRECTION.Lower, ele.Index); vc != null; vc = va.GetCell(VoxelArea.DIRECTION.Lower, vc.Index), ++count)
+                    if (vc.CellType != VOXEL_NAVI_TYPE.Walkable) break;
+
+                Vector3 tmp;
+                if (!va.GetCellPosition(ele.Index, out tmp)) continue;
+                tmp.y = tmp.y - (_cellHeight * count * 0.5f) + _cellHeight * 0.5f;
+                //Gizmos.DrawWireCube(tmp, new Vector3(_cellSize, _cellHeight*count, _cellSize));
+                Gizmos.DrawCube(tmp, new Vector3(_cellSize, _cellHeight * count, _cellSize));
+            }
+        }
+        #endregion
+
+        #region Draw First Ledge
+        if (va != null && _debug_DrawLedge == true)
+        {
+            Gizmos.color = Color.gray;
+            foreach (var ele in va.FirstLedges)
+            {
+                Vector3 tmp;
+                if (!va.GetCellPosition(ele.Index, out tmp)) continue;
+                Gizmos.DrawCube(tmp, new Vector3(_cellSize, _cellHeight, _cellSize));
+            }
+        }
+        #endregion
+
+        #region Draw Ledge
+        if (va != null && _debug_DrawLedge == true)
+        {
+            Gizmos.color = Color.cyan;
+            foreach (var ele in va.Ledges)
+            {
+                Vector3 tmp;
+                if (!va.GetCellPosition(ele.Index, out tmp)) continue;
+                Gizmos.DrawCube(tmp, new Vector3(_cellSize, _cellHeight, _cellSize));
             }
         }
         #endregion
@@ -95,15 +148,13 @@ public class NavMeshScannerWindow : EditorWindow
         #region Draw Walkable Voxel
         if (va != null && _debug_DrawWalkableVoxel == true)
         {
-            Color c = Color.blue;
-            c.a = 0.7f;
+            Color c = Color.red;
+            //c.a = 0.7f;
             Gizmos.color = c;
             foreach (var ele in va.WalkableCells)
             {
                 Vector3 tmp;
                 if (!va.GetCellPosition(ele.Index, out tmp)) continue;
-                if (ele.ConnectionBack && ele.ConnectionFront && ele.ConnectionLeft && ele.ConnectionRight) { Color t = Color.red; t.a = 0.5f; Gizmos.color = t; }
-                else Gizmos.color = c;
                 Gizmos.DrawCube(tmp, new Vector3(_cellSize, _cellHeight, _cellSize));
                 //Gizmos.DrawCube(tmp, new Vector3(_cellSize, 0f, _cellSize));
             }
@@ -148,14 +199,15 @@ public class NavMeshScannerWindow : EditorWindow
                 if ((_exceptMask & (1 << i)) > 0) exceptMask.Add(layerNames[i]);
             }
 
-            Voxel.Instance.InitVoxelArea(_cellSize, _cellHeight
+            Voxelizer.Instance.InitVoxelArea(_cellSize, _cellHeight
                 , LayerMask.GetMask(pathLayers.ToArray()), LayerMask.GetMask(obstacleMask.ToArray()), LayerMask.GetMask(exceptMask.ToArray()));
-            _mapSize = Voxel.Instance.VoxelArea.AreaBound;
-            Voxel.Instance.VoxelArea.SetAgentInfo(_agentHeight, _agentRadius, _maxClimb, _maxSlope);
-            Voxel.Instance.ScanVoxelSpace();
+            _mapSize = Voxelizer.Instance.VoxelArea.AreaBound;
+            Voxelizer.Instance.VoxelArea.SetAgentInfo(_agentHeight, _agentRadius, _maxClimb, _maxSlope);
+            Voxelizer.Instance.ScanVoxelSpace();
         }
 
         _debug_DrawVoxel = EditorGUILayout.Toggle("Show Voxel", _debug_DrawVoxel);
+        _debug_DrawLedge = EditorGUILayout.Toggle("Show Ledge", _debug_DrawLedge);
         _debug_DrawWalkableVoxel = EditorGUILayout.Toggle("Show Walkable Voxel", _debug_DrawWalkableVoxel);
         EditorGUILayout.EndVertical();
 

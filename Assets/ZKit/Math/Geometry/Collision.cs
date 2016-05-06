@@ -533,17 +533,15 @@ namespace ZKit.Math.Geometry
         /// </summary>
         /// <param name="triangle">Triangle</param>
         /// <param name="box">AABox</param>
+        /// <param name="backSide">out 충돌은 했지만, 기준 노말과 반대되는 방향의 폴리곤</param>
         /// <param name="refNormal">기준 노말. 폴리곤의 노말이 기준 노말과 반대되면 제외. 기본값(Vector3.zero)은 옵션무시</param>
         /// <returns></returns>
-        public static bool CollisionDetectTriangle(Triangle triangle, AABox box, Vector3 refNormal = new Vector3())
+        public static bool CollisionDetectTriangle(Triangle triangle, AABox box, out bool backSide, Vector3 refNormal = new Vector3())
         {
             float triangleMin, triangleMax;
             float boxMin, boxMax;
 
-            if (refNormal != Vector3.zero)
-            {
-                if (Vector3.Dot(refNormal, triangle.Normal) < 0f) return false;
-            }
+            backSide = false;
 
             var boxNormals = new Vector3[] { Vector3.right, Vector3.up, Vector3.forward };
 
@@ -582,6 +580,10 @@ namespace ZKit.Math.Geometry
                     if (boxMax < triangleMin || boxMin > triangleMax)
                         return false; // No intersection possible
                 }
+            if (refNormal != Vector3.zero)
+            {
+                if (Vector3.Dot(refNormal, triangle.Normal) < -0.05f) backSide = true;
+            }
             // No separating axis found.
             return true;
         }
