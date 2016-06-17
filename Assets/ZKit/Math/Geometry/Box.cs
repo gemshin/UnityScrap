@@ -42,6 +42,36 @@ namespace ZKit.Math.Geometry
         }
     }
 
+    public class AABoxCompact
+    {
+        private Vector3 _position;
+        private Vector3 _size;
+
+        public Vector3 Position
+        {
+            get { return _position; }
+            set { _position = value; }
+        }
+
+        public Vector3 Size
+        {
+            get { return _size; }
+            set { _size = value; }
+        }
+
+        public Vector3 HalfSize
+        {
+            get { return _size * 0.5f; }
+        }
+
+        public void DrawGizmo()
+        {
+            Gizmos.matrix = Matrix4x4.TRS(_position, Quaternion.identity, _size);
+            Gizmos.DrawWireCube(Vector3.zero, Vector3.one);
+            Gizmos.matrix = Matrix4x4.identity;
+        }
+    }
+
     public class AABox
     {
         private Vector3 _position;
@@ -59,7 +89,10 @@ namespace ZKit.Math.Geometry
             get { return _size; }
             set { _size = value; Recalculate(); }
         }
-
+        public Vector3 HalfSize
+        {
+            get { return _size * 0.5f; }
+        }
         public AABox()
         {
             _position = Vector3.zero;

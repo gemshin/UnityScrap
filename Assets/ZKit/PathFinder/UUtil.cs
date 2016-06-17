@@ -56,7 +56,7 @@ namespace ZKit.PathFinder
             return result;
         }
 
-        public static Bounds ScanMapSize3D(int pathLayerMask, int obstacleLayerMask, float gap = 0f)
+        public static Bounds ScanMapSize3D(int pathLayerMask, float gap = 0f)
         {
             TerrainCollider[] terrainColliders = (TerrainCollider[])GameObject.FindObjectsOfType(typeof(TerrainCollider));
 
@@ -84,7 +84,7 @@ namespace ZKit.PathFinder
 
             var objects = GameObject.FindObjectsOfType<GameObject>();
             bool first = true;
-            int layer = pathLayerMask | obstacleLayerMask;
+            int layer = pathLayerMask;
             foreach (GameObject go in objects)
             {
                 if ((layer & (1 << go.layer)) == 0) continue;
@@ -120,11 +120,6 @@ namespace ZKit.PathFinder
             max += Vector3.one*gap;
             result.SetMinMax(min, max);
             return result;
-        }
-
-        public static void GetVoxel()
-        {
-
         }
     }
 }

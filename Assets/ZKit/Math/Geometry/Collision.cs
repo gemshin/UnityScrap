@@ -526,7 +526,144 @@ namespace ZKit.Math.Geometry
         /// </summary>
         /// <returns>충돌을 했다. 안했다.</returns>
 
-        private static float epsilon = 0.0000f;
+        private static float epsilon = 0.000f;
+
+        const int X = 0;
+        const int Y = 1;
+        const int Z = 2;
+
+        static bool planeBoxOverlap(Vector3 normal, Vector3 vert, Vector3 maxbox)    // -NJMP-
+        {
+            Vector3 vmin = new Vector3(), vmax = new Vector3();
+            float v;
+
+            for (int i = X; i <= Z; i++)
+            {
+                v = vert[i];                    // -NJMP-
+
+                if (normal[i] > 0.0f)
+                {
+                    vmin[i] = -maxbox[i] - v;   // -NJMP-
+                    vmax[i] = maxbox[i] - v;    // -NJMP-
+                }
+                else
+                {
+                    vmin[i] = maxbox[i] - v;    // -NJMP-
+                    vmax[i] = -maxbox[i] - v;   // -NJMP-
+                }
+            }
+            if (Vector3.Dot(normal, vmin) > 0f) return false;
+            if (Vector3.Dot(normal, vmax) >= 0f) return true;
+            return false;
+        }
+        public static bool triBoxOverlap(Vector3 boxCenter, Vector3 boxHalfSize, Triangle triangle)// float triverts[3][3])
+        {
+            Vector3 normal = new Vector3();
+
+            float min, max, p0, p1, p2, rad;
+            float fex, fey, fez;
+
+            // trans tri pos to box coord
+            Vector3 v0 = triangle[0] - boxCenter;
+            Vector3 v1 = triangle[1] - boxCenter;
+            Vector3 v2 = triangle[2] - boxCenter;
+
+            // edge
+            Vector3 e0 = v1 - v0;   // tri edge 0
+            Vector3 e1 = v2 - v1;   // tri edge 1
+            Vector3 e2 = v0 - v2;   // tri edge 2
+
+            fex = Mathf.Abs(e0.x);
+            fey = Mathf.Abs(e0.y);
+            fez = Mathf.Abs(e0.z);
+            //AXISTEST_X01(e0[Z], e0[Y], fez, fey);
+            p0 = e0.z * v0.y - e0.y * v0.z;
+            p2 = e0.z * v2.y - e0.y * v2.z;
+            min = Mathf.Min(p0, p2);
+            max = Mathf.Max(p0, p2);
+            rad = fez * boxHalfSize.y + fey * boxHalfSize.z;
+            if (min > rad || max < -rad) return false;
+            //AXISTEST_Y02(e0[Z], e0[X], fez, fex);
+            p0 = -e0.z * v0.x + e0.x * v0.z;
+	        p2 = -e0.z * v2.x + e0.x * v2.z;
+            min = Mathf.Min(p0, p2);
+            max = Mathf.Max(p0, p2);
+	        rad = fez * boxHalfSize.x + fex * boxHalfSize.z;
+	        if (min > rad || max < -rad) return false;
+            //AXISTEST_Z12(e0[Y], e0[X], fey, fex);
+            p1 = e0.y * v1.x - e0.x * v1.y;
+	        p2 = e0.y * v2.x - e0.x * v2.y;
+            min = Mathf.Min(p1, p2);
+            max = Mathf.Max(p1, p2);
+            rad = fey * boxHalfSize.x + fex * boxHalfSize.y;
+        	if (min > rad || max < -rad) return false;
+
+            fex = Mathf.Abs(e1.x);
+            fey = Mathf.Abs(e1.y);
+            fez = Mathf.Abs(e1.z);
+            //AXISTEST_X01(e1[Z], e1[Y], fez, fey);
+            p0 = e1.z * v0.y - e1.y * v0.z;
+            p2 = e1.z * v2.y - e1.y * v2.z;
+            min = Mathf.Min(p0, p2);
+            max = Mathf.Max(p0, p2);
+            rad = fez * boxHalfSize.y + fey * boxHalfSize.z;
+            if (min > rad || max < -rad) return false;
+            //AXISTEST_Y02(e1[Z], e1[X], fez, fex);
+            p0 = -e1.z * v0.x + e1.x * v0.z;
+            p2 = -e1.z * v2.x + e1.x * v2.z;
+            min = Mathf.Min(p0, p2);
+            max = Mathf.Max(p0, p2);
+            rad = fez * boxHalfSize.x + fex * boxHalfSize.z;
+            if (min > rad || max < -rad) return false;
+            //AXISTEST_Z0(e1[Y], e1[X], fey, fex);
+            p0 = e1.y * v0.x - e1.x * v0.y;
+	        p1 = e1.y * v1.x - e1.x * v1.y;
+            min = Mathf.Min(p0, p1);
+            max = Mathf.Max(p0, p1);
+            rad = fey * boxHalfSize.x + fex * boxHalfSize.y;
+            if (min > rad || max < -rad) return false;
+
+            fex = Mathf.Abs(e2.x);
+            fey = Mathf.Abs(e2.y);
+            fez = Mathf.Abs(e2.z);
+            //AXISTEST_X2(e2[Z], e2[Y], fez, fey);
+            p0 = e2.z * v0.y - e2.y * v0.z;
+        	p1 = e2.z * v1.y - e2.y * v1.z;
+            min = Mathf.Min(p0, p1);
+            max = Mathf.Max(p0, p1);
+	        rad = fez * boxHalfSize.y + fey * boxHalfSize.z;
+	        if (min > rad || max < -rad) return false;
+            //AXISTEST_Y1(e2[Z], e2[X], fez, fex);
+            p0 = -e2.z * v0.x + e2.x * v0.z;
+	        p1 = -e2.z * v1.x + e2.x * v1.z;
+            min = Mathf.Min(p0, p1);
+            max = Mathf.Max(p0, p1);
+            rad = fez * boxHalfSize.x + fex * boxHalfSize.z;
+	        if (min > rad || max < -rad) return false;
+            //AXISTEST_Z12(e2[Y], e2[X], fey, fex);
+            p1 = e2.y * v1.x - e2.x * v1.y;
+        	p2 = e2.y * v2.x - e2.x * v2.y;
+            min = Mathf.Min(p1, p2);
+            max = Mathf.Max(p1, p2);
+            rad = fey * boxHalfSize.x + fex * boxHalfSize.y;
+        	if (min > rad || max < -rad) return false;
+
+            Vector3 vmax = Vector3.Max(Vector3.Max(v0, v1), v2);
+            Vector3 vmin = Vector3.Min(Vector3.Min(v0, v1), v2);
+            /* test in X-direction */
+            if (vmin.x > boxHalfSize.x || vmax.x < -boxHalfSize.x) return false;
+            /* test in Y-direction */
+            if (vmin.y > boxHalfSize.y || vmax.y < -boxHalfSize.y) return false;
+            /* test in Z-direction */
+            if (vmin.z > boxHalfSize.z || vmax.z < -boxHalfSize.z) return false;
+
+            normal = Vector3.Cross(e0, e1);
+            // -NJMP- (line removed here)
+            if (!planeBoxOverlap(normal, v0, boxHalfSize*0.5f)) return false;	// -NJMP-
+
+            return true; //1 overlap!
+        }
+
 
         /// <summary>
         /// 폴리곤과 박스의 충돌을 검사한다. 버그가 있는듯.. 나중에 수정.
